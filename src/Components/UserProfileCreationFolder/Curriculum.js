@@ -1,33 +1,42 @@
-import { View, Text, TouchableWithoutFeedback, Keyboard, TouchableOpacity, Dimensions } from 'react-native'
+import { View, Text, TouchableWithoutFeedback, Keyboard, TouchableOpacity, Dimensions, ToastAndroid } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { FlatList, ScrollView } from 'react-native-gesture-handler'
 
 import ModalSelector from 'react-native-modal-selector'
-import { Button, CheckBox, FAB, Icon, Input, Overlay } from 'react-native-elements'
-
+import { Button, CheckBox, FAB, Icon, Input, LinearProgress, Overlay } from 'react-native-elements'
 import { useSelector, useDispatch } from 'react-redux';
 
 import { CurriculumDetailsFun } from '../../Redux/Slice/UserProfileSlice';
+import { CompaniesFun } from '../../Redux/Slice/CompaniesSlice'
 import { Styles } from '../../Styles/UserProfileCreationFolder/CurriculumCss'
+import { ActivityIndicator } from 'react-native'
+
+import { firestore } from '../../config/firebase'
+import { setDoc, doc } from 'firebase/firestore'
+
+
 
 export default function Curriculum(props) {
 
   const dispatch = useDispatch();
-  const userCompaniesDataRedux = useSelector((state) => state.CompaniesReducer.companies_array);
+  const userCompaniesDataRedux = useSelector((state) => state.CompaniesReducer.companies_array).slice().sort();
+  const userCurriculumnDataRedux = useSelector((state) => state.UserProfileReducer.curriculumn);
 
   const [showFabRight, setShowFabRight] = useState(false);
-  const [visibleMainComponent, setVisibleMainComponent] = useState(true);
+  const [visibleMainComponent, setVisibleMainComponent] = useState(false);
 
-  const [userDistrict, setUserDistrict] = useState('Select District');
-  const [userBatchJoined, setUserBatchJoined] = useState('Select Year');
-  const [userPassedOut, setUserPassedOut] = useState('Select Year');
-  const [userDegree, setUserDegree] = useState('Select Degree');
+  const [userDistrict, setUserDistrict] = useState('');
+  const [userBatchJoined, setUserBatchJoined] = useState('');
+  const [userPassedOut, setUserPassedOut] = useState('');
+  const [userDegree, setUserDegree] = useState('');
   const [userPlacedCompany, setUserPlacedCompany] = useState('');
   const [userPlacedCompanyOverlay, setUserPlacedCompanyOverlay] = useState('');
 
   const [showUserCompanyComponent, setShowUserCompanyComponent] = useState(true);
   const [isUserCompanyVerified, setIsUserCompanyVerified] = useState(false);
   const [showUserCompanyOverlay, setShowUserCompanyOverlay] = useState(false);
+  const [showOverlayCompanyConfirmation, setShowOverlayCompanyConfirmation] = useState(false);
+  const [showOverlayCompanyStoreInFirestore, setShowOverlayCompanyStoreInFirestore] = useState(false);
 
 
   const [userDistrictSuccessIcon, setUserDistrictSuccessIcon] = useState('x');
@@ -1135,10 +1144,31 @@ export default function Curriculum(props) {
     "Valiant Organics Limited",
   ];
 
+  useEffect(() => {
+    
+    if (userCurriculumnDataRedux) {
+      setUserDistrict(userCurriculumnDataRedux.SelectedDistrict);
+      setUserBatchJoined(userCurriculumnDataRedux.JoinedYear);
+      setUserPassedOut(userCurriculumnDataRedux.PassedYear);
+      setUserDegree(userCurriculumnDataRedux.Degree);
+      if (userCurriculumnDataRedux.SelectedCompany.length > 0) {
+        setShowUserCompanyComponent(true);
+        setUserPlacedCompany(userCurriculumnDataRedux.SelectedCompany);
+      } else {
+        setShowUserCompanyComponent(false);
+        setUserPlacedCompany('');
+      }
+      setVisibleMainComponent(true);
+    }else{
+      console.log("curriculumn");
+      setVisibleMainComponent(true);
+    }
+    
+  }, [])
 
 
   useEffect(() => {
-    if (userDistrict !== 'Select District') {
+    if (userDistrict !== '') {
       setUserDistrictSuccessIcon('check');
       setUserDistrictSuccessIconColor('#238732');
     } else {
@@ -1148,27 +1178,45 @@ export default function Curriculum(props) {
   }, [userDistrict]);
 
   useEffect(() => {
-    if (userBatchJoined !== 'Select Year') {
-      setUserJoinedBatchSuccessIcon('check');
-      setUserJoinedBatchSuccessIconColor('#238732');
-    } else {
-      setUserJoinedBatchSuccessIcon('x');
-      setUserJoinedBatchSuccessIconColor('#8c0a1b');
+    if (userBatchJoined !== '') {
+      if(userPassedOut !==''){
+        if( userPassedOut > (userBatchJoined+1)){
+          setUserPassedOutBatchSuccessIcon('check');
+          setUserPassedOutBatchSuccessIconColor('#238732');
+          setUserJoinedBatchSuccessIcon('check');
+          setUserJoinedBatchSuccessIconColor('#238732');
+        }else{
+          setUserPassedOutBatchSuccessIcon('x');
+          setUserPassedOutBatchSuccessIconColor('#8c0a1b');
+          setUserJoinedBatchSuccessIcon('x');
+          setUserJoinedBatchSuccessIconColor('#8c0a1b');
+        }
+      }else{
+        setUserJoinedBatchSuccessIcon('check');
+        setUserJoinedBatchSuccessIconColor('#238732');
+      }
+    }else if (userPassedOut !== '') {
+      if(userBatchJoined!==''){
+        if( userPassedOut > (userBatchJoined+1)){
+          setUserPassedOutBatchSuccessIcon('check');
+          setUserPassedOutBatchSuccessIconColor('#238732');
+          setUserJoinedBatchSuccessIcon('check');
+          setUserJoinedBatchSuccessIconColor('#238732');
+        }else{
+          setUserPassedOutBatchSuccessIcon('x');
+          setUserPassedOutBatchSuccessIconColor('#8c0a1b');
+          setUserJoinedBatchSuccessIcon('x');
+          setUserJoinedBatchSuccessIconColor('#8c0a1b');
+        }
+      }else{
+        setUserPassedOutBatchSuccessIcon('check');
+        setUserPassedOutBatchSuccessIconColor('#238732');
+      }
     }
-  }, [userBatchJoined]);
+  }, [userBatchJoined, userPassedOut]);
 
   useEffect(() => {
-    if (userPassedOut !== 'Select Year') {
-      setUserPassedOutBatchSuccessIcon('check');
-      setUserPassedOutBatchSuccessIconColor('#238732');
-    } else {
-      setUserPassedOutBatchSuccessIcon('x');
-      setUserPassedOutBatchSuccessIconColor('#8c0a1b');
-    }
-  }, [userPassedOut]);
-
-  useEffect(() => {
-    if (userDegree !== 'Select Degree') {
+    if (userDegree !== '') {
       setUserDegreeSuccessIcon('check');
       setUserDegreeSuccessIconColor('#238732');
     } else {
@@ -1189,50 +1237,90 @@ export default function Curriculum(props) {
   }, [userPlacedCompany]);
 
   useEffect(() => {
-    setFilteredComapanyData(userCompaniesDataRedux.filter(item => item.toLowerCase().includes(userPlacedCompanyOverlay.toLowerCase())))
-  }, [userPlacedCompanyOverlay])
+    setFilteredComapanyData(userCompaniesDataRedux.filter(item => item.trim().toLowerCase().includes(userPlacedCompanyOverlay.trim().toLowerCase())))
+  }, [userPlacedCompanyOverlay]);
+
+  useEffect(() => {
+    if (userDistrict.length > 3 && userBatchJoined.length > 0 && userPassedOut.length > 0 && userPassedOut > (userBatchJoined+1) 
+    && userDegree.length > 0) {
+      if (showUserCompanyComponent) {
+        if (userPlacedCompany.length > 0) {
+          setShowFabRight(true);
+        } else {
+          setShowFabRight(false);
+        }
+      } else {
+        setShowFabRight(true);
+      }
+    } else {
+      setShowFabRight(false);
+    }
+  }, [userDistrict, userBatchJoined, userPassedOut, userDegree, userPlacedCompany, showUserCompanyComponent]);
 
   const selectedCompanyFromOverlay = (company, newCompany = false) => {
+    setShowOverlayCompanyConfirmation(false)
     setIsUserCompanyVerified(true);
     if (newCompany) {
-      addComapnyInDatabase(company);
+      StoreCompanyinFirestore(company);
     } else {
       setUserPlacedCompany(company);
     }
     setShowUserCompanyOverlay(false);
   }
 
-  const addComapnyInDatabase = (company) => {
-    // userCompanyList.push(company);
-    setUserPlacedCompany(company);
-  }
-
-  const showUserCompanyFun=()=>{
+  const showUserCompanyFun = () => {
     setShowUserCompanyComponent(prevState => !prevState)
     setUserPlacedCompany('');
   }
 
+  const StoreCompanyinFirestore = async (company) => {
+    setShowOverlayCompanyStoreInFirestore(true);
+    const newCompany = company.trim().replace(/\b\w/g, (match) => match.toUpperCase());
+    let newCompanyList = userCompaniesDataRedux;
+    newCompanyList.push(newCompany);
+    newCompanyList = newCompanyList.slice().sort();
+    try {
+      console.log(newCompanyList);
+      setDoc(doc(firestore, "Companies", "Data"), { "companies": newCompanyList });
+      dispatch(CompaniesFun(newCompanyList));
+      setUserPlacedCompany(company);
+      setShowOverlayCompanyStoreInFirestore(false);
+      console.log("Success")
+    } catch (e) {
+      setShowOverlayCompanyStoreInFirestore(false);
+      ToastAndroid.show("Please try again...", ToastAndroid.LONG);
+      console.log(e);
+    }
+  }
+
   const fabRightButtonFun = () => {
-    // const data = {
-    //   Place: userPlace,
-    //   Pincode: userPincode,
-    //   Post: userPost,
-    //   Taluk: userTaluk,
-    //   District: userDistrict,
-    //   State: userState,
-    //   Country: userCountry
-    // }
-    // dispatch(AddressDetailsFun(data));
+    const data = {
+      SelectedDistrict: userDistrict,
+      JoinedYear: userBatchJoined,
+      PassedYear: userPassedOut,
+      Degree: userDegree,
+      SelectedCompany: userPlacedCompany
+    }
+    dispatch(CurriculumDetailsFun(data));
     props.fabRightButtonFun();
   }
 
   const fabLeftButtonFun = () => {
+    const data = {
+      SelectedDistrict: userDistrict,
+      JoinedYear: userBatchJoined,
+      PassedYear: userPassedOut,
+      Degree: userDegree,
+      SelectedCompany: userPlacedCompany
+    }
+    dispatch(CurriculumDetailsFun(data));
     props.fabLeftButtonFun();
   }
 
 
   return (
     <View style={{ flex: 1 }}>
+
       <ScrollView>
         {
           !visibleMainComponent &&
@@ -1254,7 +1342,7 @@ export default function Curriculum(props) {
                 >
                   <TouchableOpacity style={Styles.selectPostInput}>
                     <Text style={Styles.selectPostOption}>
-                      {userDistrict}
+                      {userDistrict === '' ? 'Select District' : userDistrict}
                     </Text>
                     <Icon name={userDistrictSuccessIcon} type='feather' color={userDistrictSuccessIconColor} />
                   </TouchableOpacity>
@@ -1271,7 +1359,7 @@ export default function Curriculum(props) {
                 >
                   <TouchableOpacity style={Styles.selectPostInput}>
                     <Text style={Styles.selectPostOption}>
-                      {userBatchJoined}
+                      {userBatchJoined === '' ? 'Select Year' : userBatchJoined}
                     </Text>
                     <Icon name={userJoinedBatchSuccessIcon} type='feather' color={userJoinedBatchSuccessIconColor} />
                   </TouchableOpacity>
@@ -1288,7 +1376,7 @@ export default function Curriculum(props) {
                 >
                   <TouchableOpacity style={Styles.selectPostInput}>
                     <Text style={Styles.selectPostOption}>
-                      {userPassedOut}
+                      {userPassedOut === '' ? 'Select Year' : userPassedOut}
                     </Text>
                     <Icon name={userPassedOutBatchSuccessIcon} type='feather' color={userPassedOutBatchSuccessIconColor} />
                   </TouchableOpacity>
@@ -1305,7 +1393,7 @@ export default function Curriculum(props) {
                 >
                   <TouchableOpacity style={Styles.selectPostInput}>
                     <Text style={Styles.selectPostOption}>
-                      {userDegree}
+                      {userDegree === '' ? 'Select Degree' : userDegree}
                     </Text>
                     <Icon name={userDegreeSuccessIcon} type='feather' color={userDegreeSuccessIconColor} />
                   </TouchableOpacity>
@@ -1317,23 +1405,14 @@ export default function Curriculum(props) {
                 />
                 {showUserCompanyComponent &&
                   <Button
-                    title={userPlacedCompany.length>0 ? userPlacedCompany:'Company Name'}
+                    title={userPlacedCompany.length > 0 ? userPlacedCompany : 'Select Company'}
                     buttonStyle={Styles.buttonCompany}
-                    inputContainerStyle={Styles.inputContainer}
-                    onPress={() => setShowUserCompanyOverlay(true)}
-                    rightIcon={<Icon name='user' type="feather" color='white' />}
+                    titleStyle={Styles.buttonCompanyTitle}
+                    onPress={() => { setShowUserCompanyOverlay(true); setUserPlacedCompanyOverlay('') }}
+                    icon={<Icon name='chevron-down' type='feather' color='blue' />}
+                    iconPosition='right'
+                    iconContainerStyle={Styles.buttonCompanyIcon}
                   />
-                  // <Input
-
-
-                  //   label='Company Name'
-                  //   labelStyle={Styles.lableStyle}
-                  //   onFocus={() => setShowUserCompanyOverlay(true)}
-                  //   onBlur={() => setShowUserCompanyOverlay(false)}
-                  //   onPressIn ={() => setShowUserCompanyOverlay(true)}
-                  //   value={userPlacedCompany}
-
-                  //   />
                 }
               </View>
             </TouchableWithoutFeedback>
@@ -1357,7 +1436,7 @@ export default function Curriculum(props) {
                     renderItem={({ item }) =>
                       item !== 'No Result Found' ?
                         (<Button title={item} buttonStyle={Styles.companyFilterButtonOverlay}
-                          
+
                           onPress={() => selectedCompanyFromOverlay(item)} />
                         )
                         :
@@ -1367,7 +1446,7 @@ export default function Curriculum(props) {
                             icon={<Icon name='plus-circle' type='feather' color='white' />}
                             buttonStyle={Styles.overlayCompanyNoResultFoundViewButton}
                             titleStyle={Styles.overlayCompanyNoResultFoundViewButtonTitle}
-                            onPress={() => selectedCompanyFromOverlay(userPlacedCompanyOverlay, true)} />
+                            onPress={() => setShowOverlayCompanyConfirmation(true)} />
                         </View>
                         )
                     }
@@ -1378,6 +1457,44 @@ export default function Curriculum(props) {
                 </View>
               </TouchableOpacity>
 
+            </Overlay>
+
+            <Overlay
+              isVisible={showOverlayCompanyConfirmation}
+              overlayStyle={Styles.addCompanyOverlayConfirmationMain}>
+              <View style={Styles.addCompanyOverlayConfirmationView}>
+                <Text style={Styles.addCompanyOverlayConfirmationTitle}>
+                  Confirm!
+                </Text>
+                <Text style={Styles.addCompanyOverlayConfirmationContent}>
+                  Do you want to add this ({userPlacedCompanyOverlay}) company in our database?
+                </Text>
+                <View style={Styles.addCompanyOverlayConfirmationButtonsView}>
+                  <Button
+                    title='No'
+                    icon={<Icon name='x' type='feather' color='white' style={Styles.addCompanyOverlayConfirmationButtonIcon} />}
+                    buttonStyle={Styles.addCompanyOverlayConfirmationButtonNo}
+                    onPress={() => setShowOverlayCompanyConfirmation(false)}
+                  />
+                  <Button
+                    title='Yes'
+                    icon={<Icon name='check' type='feather' color='white' style={Styles.addCompanyOverlayConfirmationButtonIcon} />}
+                    buttonStyle={Styles.addCompanyOverlayConfirmationButtonYes}
+                    onPress={() => selectedCompanyFromOverlay(userPlacedCompanyOverlay, true)}
+                  />
+                </View>
+              </View>
+
+            </Overlay>
+
+
+            <Overlay isVisible={showOverlayCompanyStoreInFirestore}
+              overlayStyle={Styles.CompanyStoreOverlayMain}>
+              <View style={Styles.CompanyStoreOverlayView}>
+                <Text style={Styles.CompanyStoreOverlayTitle}>Please Wait...</Text>
+                <Text style={Styles.CompanyStoreOverlayContent}>Adding your company in our database({userPlacedCompanyOverlay})</Text>
+                <ActivityIndicator size='large' />
+              </View>
             </Overlay>
           </View>
         }
@@ -1394,6 +1511,7 @@ export default function Curriculum(props) {
         visible={showFabRight}
         onPress={fabRightButtonFun}
       />
+
     </View>
   )
 }

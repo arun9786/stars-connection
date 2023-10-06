@@ -11,7 +11,7 @@ import { firestore } from "../config/firebase";
 import { useNavigation } from '@react-navigation/native';
 
 import { PersonalDetailsFun } from '../Redux/Slice/UserProfileSlice';
-import { CompainesFun } from '../Redux/Slice/CompaniesSlice';
+import { CompaniesFun } from '../Redux/Slice/CompaniesSlice';
 import { Styles } from '../Styles/HomeCss';
 
 export default function Home() {
@@ -59,10 +59,9 @@ export default function Home() {
     }, [currentUserID]);
 
     const getAllCompaniesFromFirestore = async () => {
-        console.log("hello")
         const docRef = doc(firestore, "Companies", "Data");
         const docSnap = await getDoc(docRef);
-        dispatch(CompainesFun(docSnap.data().companies));
+        dispatch(CompaniesFun(docSnap.data().companies));
         checkIsUserIsCreatedProfile();
     }
 

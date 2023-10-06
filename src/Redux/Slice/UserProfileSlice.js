@@ -9,7 +9,7 @@ const UserProfileSlice = createSlice({
     },
     reducers: {
         PersonalDetailsFun: (state, action) => {
-            state.payload=action.payload
+            state.personal=action.payload
         },
         AddressDetailsFun:(state, action)=>{
             state.address=action.payload

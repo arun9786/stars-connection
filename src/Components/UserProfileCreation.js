@@ -19,25 +19,16 @@ export default function UserProfileCreation() {
 
     const childRef = useRef(null);
 
-    const [showPersonalInfoPage, setShowPersonalInfoPage] = useState(false);
+    const [showPersonalInfoPage, setShowPersonalInfoPage] = useState(true);
     const [showAddressPage, setShowAddressPage] = useState(false);
-    const [showCurriculumnPage, setShowCurriculumPage] = useState(true);
+    const [showCurriculumnPage, setShowCurriculumPage] = useState(false);
     const [showCompanyPage, setShowCompanyPage] = useState(false);
     const [showFinalVerificationPage, setShowFinalVerificationPage] = useState(false);
 
-    const [showFabLeft, setShowFabLeft] = useState(false);
-    const [showFabRight, setShowFabRight] = useState(false);
-
-    const [childPersonalInfoData, setChildPersonalInfoData] = useState(null);
-    const [childAddressData, setChildAddressData] = useState(null);
-    // const [childPersonalInfoData, setChildPersonalInfoData] = useState(null);
-    // const [childPersonalInfoData, setChildPersonalInfoData] = useState(null);
-    // const [childPersonalInfoData, setChildPersonalInfoData] = useState(null);
-
     useEffect(() => {
-        setShowPersonalInfoPage(false);
+        setShowPersonalInfoPage(true);
         setShowAddressPage(false);
-        setShowCurriculumPage(true);
+        setShowCurriculumPage(false);
         setShowCompanyPage(false);
         setShowFinalVerificationPage(false);
         // const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -58,7 +49,6 @@ export default function UserProfileCreation() {
         if (showFinalVerificationPage) {
             setShowFinalVerificationPage(false);
             setShowCompanyPage(true);
-            setShowFabRight(false);
         } else if (showCompanyPage) {
             setShowCompanyPage(false);
             setShowCurriculumPage(true);
@@ -68,7 +58,6 @@ export default function UserProfileCreation() {
         } else if (showAddressPage) {
             setShowAddressPage(false);
             setShowPersonalInfoPage(true);
-            setShowFabLeft(false);
         }
     }
 
@@ -76,7 +65,6 @@ export default function UserProfileCreation() {
         if (showPersonalInfoPage) {
             setShowPersonalInfoPage(false);
             setShowAddressPage(true);
-            setShowFabLeft(true);
         } else if (showAddressPage) {
             setShowAddressPage(false);
             setShowCurriculumPage(true);
@@ -86,13 +74,6 @@ export default function UserProfileCreation() {
         } else if (showCompanyPage) {
             setShowCompanyPage(false);
             setShowFinalVerificationPage(true);
-            setShowFabRight(false);
-        }
-    }
-
-    const updateFabRightButtonVisible = (value) => {
-        if (value !== showFabRight) {
-            setShowFabRight(value);
         }
     }
 
@@ -111,7 +92,7 @@ export default function UserProfileCreation() {
                     <Icon name='log-out' type='feather' color='black' onPress={logOutFun} />
                 </View>
             </Appbar.Header>
-            <View style={{ flex: 1, }}>
+            <View style={{ flex: 1 }}>
                 {
                     showPersonalInfoPage &&
                     <Personal_Info
@@ -128,9 +109,15 @@ export default function UserProfileCreation() {
                         fabLeftButtonFun={fabLeftButtonFun}
                         />
                 }{
-                    showCompanyPage && <Company />
+                    showCompanyPage && <Company 
+                        fabRightButtonFun={fabRightButtonFun}
+                        fabLeftButtonFun={fabLeftButtonFun}
+                        />
                 }{
-                    showFinalVerificationPage && <FinalVerification />
+                    showFinalVerificationPage && <FinalVerification 
+                        fabRightButtonFun={fabRightButtonFun}
+                        fabLeftButtonFun={fabLeftButtonFun}
+                        />
                 }
                 {/* <FAB placement='left'
                     buttonStyle={{ backgroundColor: '#211c9e' }}

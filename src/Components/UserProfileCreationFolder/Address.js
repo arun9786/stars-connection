@@ -110,7 +110,6 @@ const Address = forwardRef((props, ref) => {
 
   useEffect(() => {
     if (!isUserDataAvailableParent) {
-      console.log("hello");
       setUserPostOfficeArr([]);
       setUserPostDisabled(true);
       setPostSelectTextColor('#ccc')
@@ -396,7 +395,6 @@ const Address = forwardRef((props, ref) => {
                   disabled={true}
                   rightIcon={<Icon name={userCountrySuccessIcon} type="feather" color={userCountrySuccessIconColor} />}
                 />
-
 
               </View>
             </TouchableWithoutFeedback>

@@ -81,20 +81,24 @@ export const Styles=StyleSheet.create({
         textAlign:'right',
     },
     buttonCompany:{
-        marginLeft:8,
-        marginRight:8,
+        marginLeft:10,
+        marginRight:10,
         marginTop:3,
-        // backgroundColor:'white',
+        backgroundColor:'white',
         borderWidth:2,
         borderColor:'#abb0b8',
         borderBottomWidth:2,
         borderRadius:8,
-        paddingLeft:7,
-        paddingRight:7,
+    },
+    buttonCompanyTitle:{
         color:'black',
     },
+    buttonCompanyIcon:{
+        padding:30,
+        backgroundColor:'red'
+    },
     showUserCompanyOverlayMain:{
-        width:'80%',
+        width:'90%',
         borderRadius:20,
     
     },
@@ -129,6 +133,47 @@ export const Styles=StyleSheet.create({
     },
     overlayCompanyNoResultFoundViewButtonTitle:{
         marginLeft:5,
-    }
-
+    },
+    addCompanyOverlayConfirmationMain:{
+        width:'90%'
+    },
+    addCompanyOverlayConfirmationView:{
+        padding:6,
+    },
+    addCompanyOverlayConfirmationTitle:{
+        fontSize:17,
+        marginBottom:7,
+    },
+    addCompanyOverlayConfirmationContent:{
+        fontSize:14,
+        marginBottom:10,
+    },
+    addCompanyOverlayConfirmationButtonsView:{ 
+        flexDirection: 'row', justifyContent: 'center' 
+    },
+    addCompanyOverlayConfirmationButtonNo:{
+        backgroundColor:'red',
+        marginRight:10,
+    },
+    addCompanyOverlayConfirmationButtonYes:{
+        backgroundColor:'green',
+        marginLeft:20,
+    },
+    addCompanyOverlayConfirmationButtonIcon:{
+        marginRight:3,
+    },
+    CompanyStoreOverlayMain:{
+        width:'70%',
+        borderRadius:5,
+    },
+    CompanyStoreOverlayView:{
+        padding:10,
+    },
+    CompanyStoreOverlayTitle:{
+        fontSize:17,
+    },
+    CompanyStoreOverlayContent:{
+        fontSize:14,
+        marginBottom:7,
+    },
 });

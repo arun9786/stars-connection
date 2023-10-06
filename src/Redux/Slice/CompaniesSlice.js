@@ -6,11 +6,11 @@ const CompaniesSlice = createSlice({
         "companies_array": ''
     },
     reducers: {
-        CompainesFun: (state, action) => {
+        CompaniesFun: (state, action) => {
             state.companies_array = action.payload
         }
     }
 });
 
-export const { CompainesFun } = CompaniesSlice.actions;
+export const { CompaniesFun } = CompaniesSlice.actions;
 export default CompaniesSlice.reducer;

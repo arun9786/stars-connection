@@ -17,8 +17,7 @@ const Personal_Info = forwardRef((props, ref) => {
 
     const auth = getAuth();
     const dispatch = useDispatch();
-    const userPersonalData = useSelector((state) => state.UserProfileReducer.personal)
-
+    const userPersonalDataRedux = useSelector((state) => state.UserProfileReducer.personal)
     const [visibleMainComponent, setVisibleMainComponent] = useState(false);
 
     const [showFabRight, setShowFabRight] = useState(false);
@@ -85,12 +84,12 @@ const Personal_Info = forwardRef((props, ref) => {
 
     const getUserPersonalData = async () => {
         try {
-            setUserName(userPersonalData.Name);
-            setUserEmail(userPersonalData.Mail);
-            setUserPhone(userPersonalData.Phone);
-            setUserGender(userPersonalData.Gender);
-            if (userPersonalData.DOB) {
-                setUserDOB(userPersonalData.DOB);
+            setUserName(userPersonalDataRedux.Name);
+            setUserEmail(userPersonalDataRedux.Mail);
+            setUserPhone(userPersonalDataRedux.Phone);
+            setUserGender(userPersonalDataRedux.Gender);
+            if (userPersonalDataRedux.DOB) {
+                setUserDOB(userPersonalDataRedux.DOB);
             }
             setVisibleMainComponent(true);
         } catch (error) {
