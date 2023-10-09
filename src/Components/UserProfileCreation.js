@@ -19,17 +19,17 @@ export default function UserProfileCreation() {
 
     const childRef = useRef(null);
 
-    const [showPersonalInfoPage, setShowPersonalInfoPage] = useState(true);
+    const [showPersonalInfoPage, setShowPersonalInfoPage] = useState(false);
     const [showAddressPage, setShowAddressPage] = useState(false);
     const [showCurriculumnPage, setShowCurriculumPage] = useState(false);
-    const [showCompanyPage, setShowCompanyPage] = useState(false);
+    const [showCompanyPage, setShowCompanyPage] = useState(true);
     const [showFinalVerificationPage, setShowFinalVerificationPage] = useState(false);
 
     useEffect(() => {
-        setShowPersonalInfoPage(true);
+        setShowPersonalInfoPage(false);
         setShowAddressPage(false);
         setShowCurriculumPage(false);
-        setShowCompanyPage(false);
+        setShowCompanyPage(true);
         setShowFinalVerificationPage(false);
         // const unsubscribe = onAuthStateChanged(auth, (user) => {
         //     if (user) {

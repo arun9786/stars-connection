@@ -5,7 +5,8 @@ const UserProfileSlice = createSlice({
     initialState: {
         personal: '',
         address:'',
-        curriculumn:''
+        curriculumn:'',
+        company:'',
     },
     reducers: {
         PersonalDetailsFun: (state, action) => {
@@ -16,9 +17,12 @@ const UserProfileSlice = createSlice({
         },
         CurriculumDetailsFun:(state, action)=>{
             state.curriculumn=action.payload
+        },
+        CompanyDetailsFun:(state, action)=>{
+            state.company=action.payload
         }
     }
 });
 
-export const { PersonalDetailsFun, AddressDetailsFun, CurriculumDetailsFun } =UserProfileSlice.actions;
+export const { PersonalDetailsFun, AddressDetailsFun, CurriculumDetailsFun, CompanyDetailsFun } =UserProfileSlice.actions;
 export default UserProfileSlice.reducer;

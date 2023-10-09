@@ -21,7 +21,7 @@ const Address = forwardRef((props, ref) => {
 
   const auth = getAuth();
   const dispatch = useDispatch();
-  const userAddressData = useSelector((state) => state.UserProfileReducer.address);
+  const userAddressDataRedux = useSelector((state) => state.UserProfileReducer.address);
   
   const [visibleMainComponent, setVisibleMainComponent] = useState(false);
   const [showFabRight, setShowFabRight] = useState(false);
@@ -62,7 +62,7 @@ const Address = forwardRef((props, ref) => {
   const pincodeRegex = /^\d{6}$/
 
   useEffect(() => {
-    if (userAddressData) {
+    if (userAddressDataRedux) {
       setIsUserDataAvailableParent(true);
       setVisibleMainComponent(true);
     } else {
@@ -78,7 +78,7 @@ const Address = forwardRef((props, ref) => {
 
   useEffect(() => {
     if (isUserDataAvailableParent) {
-      const data = userAddressData;
+      const data = userAddressDataRedux;
       setUserPlace(data.Place);
       if (data.State.length > 0) {
         setUserPincode(data.Pincode);

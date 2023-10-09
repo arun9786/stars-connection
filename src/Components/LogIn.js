@@ -38,10 +38,10 @@ export default function LogIn(props) {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (user) {
                 console.log("Already signed In")
-                navigation.reset({
-                    index: 0,
-                    routes: [{ name: 'Index' }],
-                  });
+                // navigation.reset({
+                //     index: 0,
+                //     routes: [{ name: 'Index' }],
+                //   });
             } else {
                 console.log('No user is signed in');
             }
