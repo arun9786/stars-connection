@@ -4,19 +4,34 @@ export const Styles=StyleSheet.create({
     contaier:{
         flex:1,
         margin:10,
-
     },
-    inputContainer:{
-        borderWidth:2,
-        borderColor:'#abb0b8',
+    pageWelcome:{
+        fontSize:23,
+        fontWeight:'bold',
+    },
+    innerContainer:{
+        marginTop:5,
+        backgroundColor:'white',
+        paddingTop:15,
         paddingLeft:5,
         paddingRight:5,
-        borderBottomWidth:2,
+        paddingBottom:15,
+        borderRadius:5,
+    },
+    inputContainer:{
+        borderWidth:1,
+        borderColor:'#8a8703',
+        paddingLeft:5,
+        paddingRight:5,
+        borderBottomWidth:1,
         borderRadius:8,
     },
     input:{
         paddingLeft:10,
         paddingRight:3
+    },
+    inputIcons:{
+        
     },
     lableStyle:{
         color:'#585959',
@@ -24,13 +39,16 @@ export const Styles=StyleSheet.create({
     },
     button:{
         margin:8,
-        backgroundColor:'#4b7a5a',
+        backgroundColor:'#a8a605',
         borderRadius:8,
-        padding:12
+        padding:12,
     },
     buttonIcon:{
         color:'white',
         marginLeft:6,
+    },
+    buttonTitleStyle:{
+        fontSize:19,
     },
     errorMsg:{
         color:'#d10f25',
@@ -43,6 +61,10 @@ export const Styles=StyleSheet.create({
         textShadowColor: '#bf3444',
         textShadowOffset: { width: 0.5, height: 0.5 },
         textShadowRadius: 1, 
+    },
+    privacyPolicy:{
+        marginLeft:8,
+        marginRight:8,
     },
     overlayStyle:{
         width: '80%',

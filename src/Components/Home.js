@@ -33,10 +33,10 @@ export default function Home() {
                 console.log("Already signed In");
                 setCurrentUserID(user.uid);
             } else {
-                // navigation.reset({
-                //     index: 0,
-                //     routes: [{ name: 'LoginRegister' }],
-                // });
+                navigation.reset({
+                    index: 0,
+                    routes: [{ name: 'LoginRegister' }],
+                });
                 console.log('No user is signed in');
             }
         });
@@ -52,9 +52,9 @@ export default function Home() {
                 checkIsUserIsCreatedProfile();
                 console.log("exist");
             }
-            // if(!isUserHavingProfile){
-            //     checkIsUserIsCreatedProfile();
-            // }
+            if(!isUserHavingProfile){
+                checkIsUserIsCreatedProfile();
+            }
         }
     }, [currentUserID]);
 

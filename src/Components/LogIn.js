@@ -1,16 +1,24 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Keyboard, ScrollView, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import { Button, Icon, Image, Input, Overlay, Text } from "react-native-elements";
 import { useNavigation } from '@react-navigation/native';
 
 import { Styles } from "../Styles/LogInCss";
 
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, GoogleAuthProvider, signInWithCredential, signOut } from 'firebase/auth'
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, GoogleAuthProvider, signInWithCredential, signOut,
+        PhoneAuthProvider, RecaptchaVerifier } from 'firebase/auth'
+
+import {app} from '../config/firebase'
+
+import basicsStrings from '../Strings/basics.json'
+import { RadioGroup } from "react-native-radio-buttons-group";
+
+
+
 
 export default function LogIn(props) {
-
-    const [passwordVisible, setPasswordVisible] = useState(true);
-    const [passwordEyeIcon, setPasswordEyeIcon] = useState('eye');
+    const [passwordVisible, setPasswordVisible] = useState(false);
+    const [passwordEyeIcon, setPasswordEyeIcon] = useState('eye-off');
     const [isError, setIsError] = useState(true);
     const [errorMsg, setErrorMsg] = useState('');
     const [showOvelay,setShowOverlay]=useState(false);
@@ -25,12 +33,41 @@ export default function LogIn(props) {
     const [userEmail, setUserEmail] = useState('');
     const [userPassword, setUserPassword] = useState('');
 
+    const radioButtons=useMemo(()=>([
+        {
+            id:"1",
+            label:"Sign In",
+            value:'Sign In',
+            labelStyle:{fontSize:20},
+        }
+    ]
+    ),[])
+
     const auth = getAuth();
     const navigation = useNavigation();
 
     const emailRegex = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/;
     const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@#$%^&+=!])(?=\S+$).{8,}$/;
+
+    const recaptchaVerifier = useRef(null);
       
+    const handleVerification = (verificationId) => {
+        // Handle the verification ID (e.g., send it to the next screen for user input)
+        console.log('Verification ID:', verificationId);
+      };
+    
+      const recaptchaRef=useRef();
+
+      useEffect(() => {
+        setUpRecaptcha();
+        }, []);
+
+      const setUpRecaptcha = async() => {
+      };
+
+    //   const attemptInvisibleVerification = false;
+
+    
       
       
 
@@ -38,10 +75,10 @@ export default function LogIn(props) {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (user) {
                 console.log("Already signed In")
-                // navigation.reset({
-                //     index: 0,
-                //     routes: [{ name: 'Index' }],
-                //   });
+                navigation.reset({
+                    index: 0,
+                    routes: [{ name: 'Index' }],
+                  });
             } else {
                 console.log('No user is signed in');
             }
@@ -51,8 +88,8 @@ export default function LogIn(props) {
 
 
     useEffect(() => {
-        setPasswordVisible(true);
-        setPasswordEyeIcon('eye');
+        setPasswordVisible(false);
+        setPasswordEyeIcon('eye-off');
         setIsError(false);
         setErrorMsg('');
         setShowOverlay(false);
@@ -76,6 +113,17 @@ export default function LogIn(props) {
     }, [passwordVisible]);
 
     const LogInWithEmailFun = async() => {
+        // try{
+        //     console.log("insided");
+        // const phoneProvider = new PhoneAuthProvider(auth);
+        // const verificationId= await phoneProvider.verifyPhoneNumber(
+        //     '+916379185147',
+        //     recaptchaVerifier.current
+        // )
+        // console.log(verificationId);
+        // }catch(error){
+        //     console.log(error);
+        // }
         if (!emailRegex.test(userEmail)) {
             setIsError(true);
             setErrorMsg('Please enter a valid email address.')
@@ -123,40 +171,56 @@ export default function LogIn(props) {
         <ScrollView>
             <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
                 <View style={Styles.contaier}>
-                    <Input placeholder="Enter Email"
-                        style={Styles.input}
-                        inputContainerStyle={Styles.inputContainer}
-                        label='Email'
-                        labelStyle={Styles.lableStyle}
-                        leftIcon={<Icon name="email" color='#87888a' />}
-                        keyboardType='email-address'
-                        onChangeText={(text) => setUserEmail(text.toLocaleLowerCase())}
-                        value={userEmail}
-                        containerStyle={{ margin: 0, padding: 0 }}
-                    />
-                    <Input placeholder="Enter Password"
-                        style={Styles.input}
-                        secureTextEntry={!passwordVisible}
-                        inputContainerStyle={Styles.inputContainer}
-                        label='Password'
-                        labelStyle={Styles.lableStyle}
-                        leftIcon={<Icon name='lock' color='#87888a' />}
-                        rightIcon={<Icon name={passwordEyeIcon} type="feather" color='#737475'
-                            onPress={() => setPasswordVisible(!passwordVisible)} />}
-                        onChangeText={(text) => setUserPassword(text)}
-                        value={userPassword}
-                    />
+                    <Text style={Styles.pageWelcome}>
+                        Welcome
+                    </Text>
+                    <View style={Styles.innerContainer}>
+                        <RadioGroup
+                        radioButtons={radioButtons}
+                        selectedId="1"
+                        containerStyle={{alignItems:'flex-start'}}
+                        />
+                        <Input
+                            placeholder="Phone..."
+                            style={Styles.input}
+                            inputContainerStyle={Styles.inputContainer}
+                            labelStyle={Styles.lableStyle}
+                            keyboardType='phone-pad'
+                            onChangeText={(text) => setUserEmail(text.toLocaleLowerCase())}
+                            value={userEmail}
+                            containerStyle={{ margin: 0, padding: 0 }}
+                            leftIcon={<Icon name='phone' color='#8a8703' style={Styles.inputIcons}/>}
+                        />
+                        <Input placeholder="Password..."
+                            style={Styles.input}
+                            secureTextEntry={!passwordVisible}
+                            inputContainerStyle={Styles.inputContainer}
+                            labelStyle={Styles.lableStyle}
+                            rightIcon={<Icon name={passwordEyeIcon} type="feather" color='#8a8703'
+                                onPress={() => setPasswordVisible(!passwordVisible)} />}
+                            leftIcon={<Icon name='lock' color='#8a8703' />}
+                            onChangeText={(text) => setUserPassword(text)}
+                            value={userPassword}
+                        />
 
-                    {
-                        isError && <Text style={Styles.errorMsg}>{errorMsg}</Text>
-                    }
+                        {
+                            isError && <Text style={Styles.errorMsg}>{errorMsg}</Text>
+                        }
 
-                    <Button title='LOGIN'
-                        icon={<Icon name='arrow-right' color='white' style={Styles.buttonIcon} />}
-                        iconPosition='right'
-                        loading={false} buttonStyle={Styles.button}
-                        onPress={LogInWithEmailFun}
-                    />
+                        <Button title='Sign-In'
+                            icon={<Icon name='arrow-right' color='white' style={Styles.buttonIcon} />}
+                            iconPosition='right'
+                            loading={false} 
+                            buttonStyle={Styles.button}
+                            titleStyle={Styles.buttonTitleStyle}
+                            onPress={LogInWithEmailFun}
+                        />
+
+                        <Text style={Styles.privacyPolicy}>
+                            By continuing, you agree to {basicsStrings.appName}'s conditions of Use and Privacy notice.
+                        </Text>
+                    </View>
+                    
                 </View>
             </TouchableWithoutFeedback>
             <Overlay isVisible={showOvelay} overlayStyle={Styles.overlayStyle}>

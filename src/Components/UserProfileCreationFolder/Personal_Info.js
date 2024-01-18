@@ -16,8 +16,8 @@ import { Styles } from '../../Styles/UserProfileCreationFolder/Personal_InfoCss'
 const Personal_Info = forwardRef((props, ref) => {
 
     const auth = getAuth();
-    const dispatch = useDispatch();
-    const userPersonalDataRedux = useSelector((state) => state.UserProfileReducer.personal)
+    const dispatch = useDispatch(); 
+    const userPersonalDataRedux = useSelector((state) => state.UserProfileReducer.personal);
     const [visibleMainComponent, setVisibleMainComponent] = useState(false);
 
     const [showFabRight, setShowFabRight] = useState(false);
@@ -110,6 +110,23 @@ const Personal_Info = forwardRef((props, ref) => {
         props.fabRightButtonFun();
     }
 
+    const handleInputChange = (text) => {
+        // Check if the last character entered is a backspace
+        if (text.length < userDOB.length) {
+            setUserDOB(formatDate(text));
+        } else {
+            setUserDOB(formatDate(text));
+        }
+      };
+
+    const formatDate = (input) => {
+        const formattedDate = input.replace(/\D/g, '');
+        if (formattedDate.length >= 2) {
+          return `${formattedDate.slice(0, 2)}/${formattedDate.slice(2, 4)}/${formattedDate.slice(4, 8)}`;
+        }
+        return formattedDate;
+    };
+
 
     return (
         <View style={{ flex: 1 }}>
@@ -172,7 +189,7 @@ const Personal_Info = forwardRef((props, ref) => {
                                     label='Date of Birth'
                                     labelStyle={Styles.lableStyle}
                                     leftIcon={<Icon name="calendar" type='feather' color='#87888a' />}
-                                    onChangeText={(text) => setUserDOB(text)}
+                                    onChangeText={(text) => setUserDOB(handleInputChange(text))}
                                     value={userDOB}
                                     rightIcon={<Icon name={userDOBSuccessIcon} type="feather" color={userDOBSuccessIconColor} />}
                                 />

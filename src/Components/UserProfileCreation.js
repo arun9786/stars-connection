@@ -19,30 +19,30 @@ export default function UserProfileCreation() {
 
     const childRef = useRef(null);
 
-    const [showPersonalInfoPage, setShowPersonalInfoPage] = useState(false);
+    const [showPersonalInfoPage, setShowPersonalInfoPage] = useState(true);
     const [showAddressPage, setShowAddressPage] = useState(false);
     const [showCurriculumnPage, setShowCurriculumPage] = useState(false);
-    const [showCompanyPage, setShowCompanyPage] = useState(true);
+    const [showCompanyPage, setShowCompanyPage] = useState(false);
     const [showFinalVerificationPage, setShowFinalVerificationPage] = useState(false);
 
     useEffect(() => {
-        setShowPersonalInfoPage(false);
+        setShowPersonalInfoPage(true);
         setShowAddressPage(false);
         setShowCurriculumPage(false);
-        setShowCompanyPage(true);
+        setShowCompanyPage(false);
         setShowFinalVerificationPage(false);
-        // const unsubscribe = onAuthStateChanged(auth, (user) => {
-        //     if (user) {
-        //         console.log("Already signed In");
-        //     } else {
-        //         navigation.reset({
-        //             index: 0,
-        //             routes: [{ name: 'LoginRegister' }],
-        //         });
-        //         console.log('No user is signed in');
-        //     }
-        // });
-        // return () => unsubscribe();
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            if (user) {
+                console.log("Already signed In");
+            } else {
+                navigation.reset({
+                    index: 0,
+                    routes: [{ name: 'LoginRegister' }],
+                });
+                console.log('No user is signed in');
+            }
+        });
+        return () => unsubscribe();
     }, [])
 
     const fabLeftButtonFun = () => {

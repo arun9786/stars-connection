@@ -439,8 +439,8 @@ export default function SignUp(props) {
                                 icon={<Icon name='arrow-right' type='feather' color='white' style={Styles.buttonIcon} />}
                                 iconPosition='right'
                                 loading={false} buttonStyle={Styles.button}
-                                // onPress={handleSubmit}
-                                onPress={StoreCompanyinFirestore} 
+                                onPress={handleSubmit}
+                                // onPress={StoreCompanyinFirestore} 
                                 />
 
 
