@@ -9,13 +9,13 @@ const auth = initializeAuth(app, {
 });
 
 import React from "react";
-import { Keyboard, SafeAreaView, TouchableWithoutFeedback, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native'
 import { createStackNavigator } from '@react-navigation/stack'
 
 import LogInSignUp from './src/Components/LogInSignUp'
 import Index from "./src/Components/Index";
 import UserProfileCreation from "./src/Components/UserProfileCreation";
+import LogIn from "./src/Components/LogIn";
 import { Provider } from "react-redux";
 import { Store } from "./src/Redux/Store/Store";
 
@@ -26,9 +26,9 @@ export default function App() {
   return (
     <Provider store={Store}>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="Index">
+        <Stack.Navigator initialRouteName="LogIn">
           <Stack.Screen name="Index" component={Index} options={{ headerShown: false }} />
-          <Stack.Screen name="LoginRegister" component={LogInSignUp} options={{ headerShown: false }} />
+          <Stack.Screen name="LogIn" component={LogIn} />
           <Stack.Screen name="UserProfileCreation" component={UserProfileCreation} options={{ headerShown: false }} />
         </Stack.Navigator>
       </NavigationContainer>
