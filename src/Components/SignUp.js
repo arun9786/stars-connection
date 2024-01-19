@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Keyboard, ScrollView, ToastAndroid, TouchableWithoutFeedback, View } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { ActivityIndicator, Keyboard, KeyboardAvoidingView, Platform, SafeAreaView, ScrollView, ToastAndroid, TouchableWithoutFeedback, View } from "react-native";
 import { BottomSheet, Button, ButtonGroup, Icon, Image, Input, ListItem, Overlay, Text } from "react-native-elements";
 import { useNavigation } from '@react-navigation/native';
 
@@ -10,6 +10,10 @@ import { getDatabase, ref, set } from 'firebase/database'
 import { setDoc, doc } from 'firebase/firestore'
 import { firestore } from "../config/firebase";
 import { async } from "@firebase/util";
+import OTPInputView from '@twotalltotems/react-native-otp-input';
+import Clipboard from "@react-native-community/clipboard";
+import OTPTextView from "react-native-otp-textinput";
+import { TouchableOpacity } from "react-native-gesture-handler";
 
 export default function SignUp(props) {
 
@@ -45,6 +49,7 @@ export default function SignUp(props) {
     const [loggeInStatusIcon, setLoggeInStatusIcon] = useState(require('../Images/icon-success.gif'));
     const [loggeInStatusButtonIcon, setLoggeInStatusButtonIcon] = useState('');
     const [loggeInStatusButtonTitle, setLoggeInStatusButtonTitle] = useState('');
+    const [showOTPOvelay, setShowOTPOvelay] = useState(false);
 
     const genderButtons = ['Male', 'Female'];
     const [genderSelectedIndex, setGenderSelectedIndex] = useState(0);
@@ -53,7 +58,7 @@ export default function SignUp(props) {
     const [userEmail, setUserEmail] = useState('');
     const [userModifiedEmail, setUserModifiedEmail] = useState('');
     const [userGender, setUserGender] = useState('');
-    const [userPhone, setUserPhone] = useState('');
+    const [userPhone, setUserPhone] = useState('6356726534');
     const [userPassword, setUserPassword] = useState('');
     const [userConfirmPassword, setUserConfirmPassword] = useState('');
     const [userMaskedPassword, setUserMaskedPassword] = useState('');
@@ -128,7 +133,7 @@ export default function SignUp(props) {
         setUserName('');
         setUserEmail('');
         setUserModifiedEmail('');
-        setUserPhone('');
+        setUserPhone('6356726534');
         setUserPassword('');
         setUserConfirmPassword('');
         setUserMaskedPassword('');
@@ -254,7 +259,7 @@ export default function SignUp(props) {
     }, [currentUserID])
 
 
-    const handleSubmit = async() => {
+    const handleSubmit = async () => {
         setUserModifiedEmail(userEmail.replace(/\./g, "-"))
         setIsUserProfileVerified(false);
         if (userName.length < 4) {
@@ -303,21 +308,21 @@ export default function SignUp(props) {
         if (currentUserID && isUserProfileVerified) {
             console.log("hello");
             try {
-                setDoc(doc(firestore, "Users",currentUserID.toString() ,"Personal Details","Data"),{
+                setDoc(doc(firestore, "Users", currentUserID.toString(), "Personal Details", "Data"), {
                     Name: userName,
                     Mail: userEmail,
                     Gender: userGender,
                     Phone: userPhone,
                     Password: userMaskedPassword
-                  });
-                  setIsLoggedInSuccessful(true);
-                  setIsLoggingIn(false);
-                  setIsLoggedInSuccessFailure(true);
-                  setLoggeInStatusMsg('Your account has been created successfully.');
-                  setLoggeInStatusIcon(require('../Images/icon-success.gif'));
-                  setLoggeInStatusButtonIcon('home');
-                  setLoggeInStatusButtonTitle('Home');
-              } catch (e) {
+                });
+                setIsLoggedInSuccessful(true);
+                setIsLoggingIn(false);
+                setIsLoggedInSuccessFailure(true);
+                setLoggeInStatusMsg('Your account has been created successfully.');
+                setLoggeInStatusIcon(require('../Images/icon-success.gif'));
+                setLoggeInStatusButtonIcon('home');
+                setLoggeInStatusButtonTitle('Home');
+            } catch (e) {
                 setIsLoggedInSuccessful(false);
                 setIsLoggingIn(false);
                 setIsLoggedInSuccessFailure(true);
@@ -325,19 +330,19 @@ export default function SignUp(props) {
                 setLoggeInStatusIcon(require('../Images/icon-error.gif'));
                 setLoggeInStatusButtonIcon('refresh-cw');
                 setLoggeInStatusButtonTitle('Retry');
-              }
+            }
         }
     }
 
-    
 
 
-    const StoreCompanyinFirestore= async ()=>{
+
+    const StoreCompanyinFirestore = async () => {
         console.log("hello pop")
-        try{
-            setDoc(doc(firestore, "Others","Cities"),{"data":cities});
+        try {
+            setDoc(doc(firestore, "Others", "Cities"), { "data": cities });
             console.log("Success")
-        }catch (e){
+        } catch (e) {
             console.log(e);
         }
     }
@@ -352,6 +357,15 @@ export default function SignUp(props) {
         }
     }
 
+    let otpInput = useRef(null);
+
+    // const clearText = () => {
+    //     otpInput.current.clear();
+    // }
+
+    // const setText = () => {
+    //     otpInput.current.setValue("123456");
+    // }
 
     return (
         <ScrollView>
@@ -359,22 +373,22 @@ export default function SignUp(props) {
                 <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
                     <View>
                         <View style={Styles.contaier}>
-                            <Input placeholder="Enter Full Name"
+                            <Input placeholder="Enter Full Name..."
                                 style={Styles.input}
                                 inputContainerStyle={Styles.inputContainer}
                                 label='Full Name'
                                 labelStyle={Styles.lableStyle}
-                                leftIcon={<Icon name="user" type='feather' color='#87888a' />}
+                                leftIcon={<Icon name="user" type='feather' color='#3156c4' />}
                                 onChangeText={(text) => setUserName(text)}
                                 value={userName}
                                 rightIcon={<Icon name={userNameSuccessIcon} type="feather" color={userNameSuccessIconColor} />}
                             />
-                            <Input placeholder="Enter Email ID"
+                            <Input placeholder="Enter Email ID..."
                                 style={Styles.input}
                                 inputContainerStyle={Styles.inputContainer}
                                 label='Email'
                                 labelStyle={Styles.lableStyle}
-                                leftIcon={<Icon name="email" color='#87888a' />}
+                                leftIcon={<Icon name="email" color='#3156c4' />}
                                 keyboardType='email-address'
                                 onChangeText={(text) => setUserEmail(text.toLocaleLowerCase())}
                                 value={userEmail}
@@ -388,28 +402,28 @@ export default function SignUp(props) {
                                 textStyle={Styles.textStyle}
                                 selectedButtonStyle={Styles.selectedButtonStyle}
                             />
-                            <Input placeholder="Enter Mobile Number"
+                            <Input placeholder="Enter Mobile Number..."
                                 style={Styles.input}
                                 inputContainerStyle={Styles.inputContainer}
                                 label='Phone'
                                 labelStyle={Styles.lableStyle}
-                                leftIcon={<Icon name="phone" color='#87888a' />}
+                                leftIcon={<Icon name="phone" color='#3156c4' />}
                                 keyboardType='numeric'
                                 onChangeText={(text) => setUserPhone(text)}
                                 value={userPhone}
                                 rightIcon={<Icon name={userPhoneSuccessIcon} type="feather" color={userPhoneSuccessIconColor} />}
                             />
-                            <Input placeholder="Enter Password"
+                            <Input placeholder="Enter Password..."
                                 style={Styles.input}
                                 secureTextEntry={!passwordVisible}
                                 inputContainerStyle={Styles.inputContainer}
                                 label='Create Password'
                                 labelStyle={Styles.lableStyle}
-                                leftIcon={<Icon name='lock' color='#87888a' />}
+                                leftIcon={<Icon name='lock' color='#3156c4' />}
                                 rightIcon={
                                     <View style={{ flexDirection: 'row' }}>
                                         <Icon name={userPasswordSuccessIcon} type="feather" color={userPasswordSuccessIconColor} />
-                                        <Icon name={passwordEyeIcon} type="feather" color='#737475'
+                                        <Icon name={passwordEyeIcon} type="feather" color='#3156c4'
                                             onPress={() => setPasswordVisible(!passwordVisible)} />
                                     </View>}
                                 onChangeText={(text) => setUserPassword(text)}
@@ -418,18 +432,18 @@ export default function SignUp(props) {
                             {passwordHint && <Text style={[Styles.passwordHintText]}>
                                 Your password should be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one digit, and one symbol.
                             </Text>}
-                            <Input placeholder="Confirm Password"
+                            <Input placeholder="Confirm Password..."
                                 style={Styles.input}
                                 disabled={!passwordConfirmButtonVisible}
                                 secureTextEntry={!passwordConfirmVisible}
                                 inputContainerStyle={Styles.inputContainer}
                                 label='Confirm Password'
                                 labelStyle={Styles.lableStyle}
-                                leftIcon={<Icon name='lock' color='#87888a' />}
+                                leftIcon={<Icon name='lock' color='#3156c4' />}
                                 rightIcon={
                                     <View style={{ flexDirection: 'row' }}>
                                         <Icon name={userPasswordConfirmSuccessIcon} type="feather" color={userPasswordConfirmSuccessIconColor} />
-                                        <Icon name={passwordConfirmEyeIcon} type="feather" color='#737475'
+                                        <Icon name={passwordConfirmEyeIcon} type="feather" color='#3156c4'
                                             onPress={() => setPasswordConfirmVisible(!passwordConfirmVisible)} />
                                     </View>}
                                 onChangeText={(text) => setUserConfirmPassword(text)}
@@ -440,8 +454,8 @@ export default function SignUp(props) {
                                 iconPosition='right'
                                 loading={false} buttonStyle={Styles.button}
                                 onPress={handleSubmit}
-                                // onPress={StoreCompanyinFirestore} 
-                                />
+                            // onPress={StoreCompanyinFirestore} 
+                            />
 
 
                         </View>
@@ -457,6 +471,35 @@ export default function SignUp(props) {
                         </BottomSheet>
                     </View>
                 </TouchableWithoutFeedback>
+
+                <Overlay isVisible={!showOTPOvelay} overlayStyle={Styles.otpOverlayStyle}>
+                    <Text onPress={()=>setShowOTPOvelay(true)} style={Styles.cancelButtonText}>x</Text>
+                    
+                    <View style={Styles.otpOverlayContainerStyle}>
+                        <Text style={Styles.otpOverlayTitle}>Mobile Verification</Text>
+                        <Text style={Styles.otpOverlayTitleHint}>OTP has sent to {userPhone}</Text>
+                        <View style={Styles.otpInputContainerStyle}>
+                            <OTPTextView
+                                autoFocus
+                                inputCount={6}
+                                tintColor='#670d94'
+                                containerStyle={Styles.otpContainerStyle}
+                                textInputStyle={Styles.otpTextInputStyle} />
+
+                            <Button
+                                title='Verify OTP'
+                                buttonStyle={Styles.otpContainerVerifyButton}
+                            />
+                        </View>
+                        <Text style={Styles.otpOverlayResendOTPHint} >Didn't you receive any code?</Text>
+                        <TouchableOpacity>
+                            <Text style={Styles.otpOverlayResendOTP}>Resend New Code</Text>
+                        </TouchableOpacity>
+                    </View>
+
+
+                </Overlay>
+
                 <Overlay isVisible={showOvelay} overlayStyle={Styles.overlayStyle}>
                     {
                         isLoggingIn &&
@@ -490,5 +533,6 @@ export default function SignUp(props) {
                 </Overlay>
             </View>
         </ScrollView>
+
     )
 }

@@ -8,7 +8,7 @@ export const Styles=StyleSheet.create({
     },
     inputContainer:{
         borderWidth:2,
-        borderColor:'#abb0b8',
+        borderColor:'#2a49a3',
         borderBottomWidth:2,
         borderRadius:8,
         paddingLeft:7,
@@ -16,15 +16,22 @@ export const Styles=StyleSheet.create({
     },
     input:{
         paddingLeft:10,
-        paddingRight:3
+        paddingRight:3,
     },
     lableStyle:{
-        color:'#585959',
+        color:'#2a49a3',
         textAlign:'right',
+    },
+    textComponetStyle:{
+        fontWeight:'bold',
+        color:'#2a49a3',
+        textAlign:'right',
+        marginRight:10,
+        fontSize:16,
     },
     buttonGroupContainer:{
         borderWidth:2,
-        borderColor:'#abb0b8',
+        borderColor:'#2a49a3',
         height:50,
         borderRadius:8,
         marginBottom:25,
@@ -46,13 +53,6 @@ export const Styles=StyleSheet.create({
         backgroundColor:'#274575',
         borderRadius:8,
         padding:12
-    },
-    textComponetStyle:{
-        fontWeight:'bold',
-        color:'#5d5e5e',
-        textAlign:'right',
-        marginRight:10,
-        fontSize:16,
     },
     buttonIcon:{
         color:'white',
@@ -136,5 +136,63 @@ export const Styles=StyleSheet.create({
     },
     overlaySuccessButtonIcon:{
         marginRight:10
+    },
+
+    otpOverlayStyle:{
+        padding:0,
+        width:'86%',
+        borderRadius:7,
+    },
+    otpOverlayContainerStyle:{
+        paddingLeft:12,
+        paddingRight:12,
+        paddingBottom:12,
+    },
+    cancelButtonText:{
+        alignSelf:'flex-end',
+        marginRight:10,
+        fontSize:25,
+    },
+    otpOverlayTitle:{
+        fontWeight:'bold',
+        textAlign:'center',
+        fontSize:17,
+    },
+    otpOverlayTitleHint:{
+        marginTop:7,
+        marginBottom:7,
+        textAlign:'center',
+        fontSize:15,
+    },
+    otpInputContainerStyle:{
+        marginTop:10,
+        marginBottom:10,
+        backgroundColor:'#f5f6fa',
+        padding:10,
+    },
+    otpContainerStyle:{
+    },
+    otpTextInputStyle:{
+        width:'12%',
+        height:'auto',
+        borderWidth:1,
+        borderBottomWidth:1,
+        borderColor:'#670d94',
+    },
+    otpContainerVerifyButton:{
+        marginTop:9,
+        backgroundColor:'#670d94',
+        borderRadius:20,
+    },
+    otpOverlayResendOTPHint:{
+        textAlign:'center',
+    },
+    otpOverlayResendOTP:{
+        color:'#670d94',
+        fontWeight:'bold',
+        textAlign:'center',
+        marginTop:5,
+        fontSize:15,
+        textDecorationLine:'underline',
     }
 })

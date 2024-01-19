@@ -5,15 +5,15 @@ import { useNavigation } from '@react-navigation/native';
 
 import { Styles } from "../Styles/LogInCss";
 
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, GoogleAuthProvider, signInWithCredential, signOut,
-        PhoneAuthProvider, RecaptchaVerifier } from 'firebase/auth'
+import {
+    getAuth, signInWithEmailAndPassword, onAuthStateChanged, GoogleAuthProvider, signInWithCredential, signOut,
+    PhoneAuthProvider, RecaptchaVerifier
+} from 'firebase/auth'
 
-import {app} from '../config/firebase'
+import { app } from '../config/firebase'
 
 import basicsStrings from '../Strings/basics.json'
 import { RadioGroup } from "react-native-radio-buttons-group";
-
-
 
 
 export default function LogIn(props) {
@@ -21,27 +21,39 @@ export default function LogIn(props) {
     const [passwordEyeIcon, setPasswordEyeIcon] = useState('eye-off');
     const [isError, setIsError] = useState(true);
     const [errorMsg, setErrorMsg] = useState('');
-    const [showOvelay,setShowOverlay]=useState(false);
+    const [showOvelay, setShowOverlay] = useState(false);
     const [isLoggingIn, setIsLoggingIn] = useState(false);
     const [isLoggedInSuccessful, setIsLoggedInSuccessful] = useState(false);
     const [isLoggedInSuccessFailure, setIsLoggedInSuccessFailure] = useState(false);
-    const [loggeInStatusMsg,setLoggeInStatusMsg]=useState('');
-    const [loggeInStatusIcon,setLoggeInStatusIcon]=useState(require('../Images/icon-success.gif'));
-    const [loggeInStatusButtonIcon,setLoggeInStatusButtonIcon]=useState('');
-    const [loggeInStatusButtonTitle,setLoggeInStatusButtonTitle]=useState('');
+    const [loggeInStatusMsg, setLoggeInStatusMsg] = useState('');
+    const [loggeInStatusIcon, setLoggeInStatusIcon] = useState(require('../Images/icon-success.gif'));
+    const [loggeInStatusButtonIcon, setLoggeInStatusButtonIcon] = useState('');
+    const [loggeInStatusButtonTitle, setLoggeInStatusButtonTitle] = useState('');
 
     const [userEmail, setUserEmail] = useState('');
     const [userPassword, setUserPassword] = useState('');
 
-    const radioButtons=useMemo(()=>([
+    const radioButtons = useMemo(() => ([
         {
-            id:"1",
-            label:"Sign In",
-            value:'Sign In',
-            labelStyle:{fontSize:20},
+            id: "1",
+            label: "Sign In",
+            value: 'Sign In',
+            labelStyle: { fontSize: 20 },
+            color: '#aba30a',
         }
     ]
-    ),[])
+    ), []);
+
+    const radioButtons1 = useMemo(() => ([
+        {
+            id: "1",
+            label: "Create Account",
+            value: 'Create Account',
+            labelStyle: { fontSize: 20 },
+            color: '#aba30a',
+        }
+    ]
+    ), []);
 
     const auth = getAuth();
     const navigation = useNavigation();
@@ -50,26 +62,8 @@ export default function LogIn(props) {
     const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@#$%^&+=!])(?=\S+$).{8,}$/;
 
     const recaptchaVerifier = useRef(null);
-      
-    const handleVerification = (verificationId) => {
-        // Handle the verification ID (e.g., send it to the next screen for user input)
-        console.log('Verification ID:', verificationId);
-      };
-    
-      const recaptchaRef=useRef();
-
-      useEffect(() => {
-        setUpRecaptcha();
-        }, []);
-
-      const setUpRecaptcha = async() => {
-      };
 
     //   const attemptInvisibleVerification = false;
-
-    
-      
-      
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -78,7 +72,7 @@ export default function LogIn(props) {
                 navigation.reset({
                     index: 0,
                     routes: [{ name: 'Index' }],
-                  });
+                });
             } else {
                 console.log('No user is signed in');
             }
@@ -112,7 +106,11 @@ export default function LogIn(props) {
         }
     }, [passwordVisible]);
 
-    const LogInWithEmailFun = async() => {
+    const openSignupPage=()=>{
+        navigation.navigate('SignUp');
+    }
+
+    const LogInWithEmailFun = async () => {
         // try{
         //     console.log("insided");
         // const phoneProvider = new PhoneAuthProvider(auth);
@@ -163,7 +161,7 @@ export default function LogIn(props) {
         }
     }
 
-    const loginStatusFun=()=>{
+    const loginStatusFun = () => {
         setShowOverlay(false);
     }
 
@@ -174,11 +172,19 @@ export default function LogIn(props) {
                     <Text style={Styles.pageWelcome}>
                         Welcome
                     </Text>
+                    <View style={Styles.signupContainer}>
+                        <RadioGroup
+                            radioButtons={radioButtons1}
+                            selectedId="2"
+                            onPress={() => openSignupPage()}
+                            containerStyle={{ alignItems: 'flex-start' }}
+                        />
+                    </View>
                     <View style={Styles.innerContainer}>
                         <RadioGroup
-                        radioButtons={radioButtons}
-                        selectedId="1"
-                        containerStyle={{alignItems:'flex-start'}}
+                            radioButtons={radioButtons}
+                            selectedId="1"
+                            containerStyle={{ alignItems: 'flex-start' }}
                         />
                         <Input
                             placeholder="Phone..."
@@ -189,7 +195,7 @@ export default function LogIn(props) {
                             onChangeText={(text) => setUserEmail(text.toLocaleLowerCase())}
                             value={userEmail}
                             containerStyle={{ margin: 0, padding: 0 }}
-                            leftIcon={<Icon name='phone' color='#8a8703' style={Styles.inputIcons}/>}
+                            leftIcon={<Icon name='phone' color='#8a8703' style={Styles.inputIcons} />}
                         />
                         <Input placeholder="Password..."
                             style={Styles.input}
@@ -210,7 +216,7 @@ export default function LogIn(props) {
                         <Button title='Sign-In'
                             icon={<Icon name='arrow-right' color='white' style={Styles.buttonIcon} />}
                             iconPosition='right'
-                            loading={false} 
+                            loading={false}
                             buttonStyle={Styles.button}
                             titleStyle={Styles.buttonTitleStyle}
                             onPress={LogInWithEmailFun}
@@ -220,7 +226,7 @@ export default function LogIn(props) {
                             By continuing, you agree to {basicsStrings.appName}'s conditions of Use and Privacy notice.
                         </Text>
                     </View>
-                    
+
                 </View>
             </TouchableWithoutFeedback>
             <Overlay isVisible={showOvelay} overlayStyle={Styles.overlayStyle}>
@@ -238,20 +244,20 @@ export default function LogIn(props) {
                     </View>
                 }
                 {
-                    isLoggedInSuccessFailure && 
+                    isLoggedInSuccessFailure &&
                     <View style={Styles.overlayViewLoginSuccess}>
                         <Text style={Styles.overlaySignInSuccess}>
                             {loggeInStatusMsg}
                         </Text>
                         <Image source={loggeInStatusIcon}
-                            style={Styles.overlaySuccessIcon}/>
+                            style={Styles.overlaySuccessIcon} />
                         <Button title={loggeInStatusButtonTitle}
-                             icon={<Icon name={loggeInStatusButtonIcon} type='feather' color='white' style={Styles.overlaySuccessButtonIcon}/>}
-                             onPress={loginStatusFun}
-                             />
+                            icon={<Icon name={loggeInStatusButtonIcon} type='feather' color='white' style={Styles.overlaySuccessButtonIcon} />}
+                            onPress={loginStatusFun}
+                        />
                     </View>
                 }
-                
+
 
             </Overlay>
         </ScrollView>
