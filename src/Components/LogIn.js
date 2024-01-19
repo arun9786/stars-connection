@@ -68,11 +68,7 @@ export default function LogIn(props) {
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (user) {
-                console.log("Already signed In")
-                navigation.reset({
-                    index: 0,
-                    routes: [{ name: 'Index' }],
-                });
+                console.log("Already signed In in login page")
             } else {
                 console.log('No user is signed in');
             }
@@ -111,54 +107,43 @@ export default function LogIn(props) {
     }
 
     const LogInWithEmailFun = async () => {
-        // try{
-        //     console.log("insided");
-        // const phoneProvider = new PhoneAuthProvider(auth);
-        // const verificationId= await phoneProvider.verifyPhoneNumber(
-        //     '+916379185147',
-        //     recaptchaVerifier.current
-        // )
-        // console.log(verificationId);
-        // }catch(error){
-        //     console.log(error);
+        // if (!emailRegex.test(userEmail)) {
+        //     setIsError(true);
+        //     setErrorMsg('Please enter a valid email address.')
+        // } else if (!passwordRegex.test(userPassword)) {
+        //     setIsError(true);
+        //     if (userPassword.length > 0) {
+        //         setErrorMsg('The password you entered is incorrect.')
+        //     } else {
+        //         setErrorMsg('Please enter your password.');
+        //     }
+        // } else {
+        //     setIsError(false);
+        //     setErrorMsg('');
+        //     setShowOverlay(true);
+        //     setIsLoggingIn(true);
+        //     setIsLoggedInSuccessFailure(false);
+        //     signInWithEmailAndPassword(auth, userEmail, userPassword)
+        //         .then((userCredential) => {
+        //             const user = userCredential.user;
+        //             setIsLoggedInSuccessful(true);
+        //             setIsLoggingIn(false);
+        //             setIsLoggedInSuccessFailure(true);
+        //             setLoggeInStatusMsg('Sign-in successfull...');
+        //             setLoggeInStatusIcon(require('../Images/icon-success.gif'));
+        //             setLoggeInStatusButtonIcon('home');
+        //             setLoggeInStatusButtonTitle('Home');
+        //         })
+        //         .catch((error) => {
+        //             setIsLoggedInSuccessful(false);
+        //             setIsLoggingIn(false);
+        //             setIsLoggedInSuccessFailure(true);
+        //             setLoggeInStatusMsg(error.code);
+        //             setLoggeInStatusIcon(require('../Images/icon-error.gif'));
+        //             setLoggeInStatusButtonIcon('refresh-cw');
+        //             setLoggeInStatusButtonTitle('Retry');
+        //         })
         // }
-        if (!emailRegex.test(userEmail)) {
-            setIsError(true);
-            setErrorMsg('Please enter a valid email address.')
-        } else if (!passwordRegex.test(userPassword)) {
-            setIsError(true);
-            if (userPassword.length > 0) {
-                setErrorMsg('The password you entered is incorrect.')
-            } else {
-                setErrorMsg('Please enter your password.');
-            }
-        } else {
-            setIsError(false);
-            setErrorMsg('');
-            setShowOverlay(true);
-            setIsLoggingIn(true);
-            setIsLoggedInSuccessFailure(false);
-            signInWithEmailAndPassword(auth, userEmail, userPassword)
-                .then((userCredential) => {
-                    const user = userCredential.user;
-                    setIsLoggedInSuccessful(true);
-                    setIsLoggingIn(false);
-                    setIsLoggedInSuccessFailure(true);
-                    setLoggeInStatusMsg('Sign-in successfull...');
-                    setLoggeInStatusIcon(require('../Images/icon-success.gif'));
-                    setLoggeInStatusButtonIcon('home');
-                    setLoggeInStatusButtonTitle('Home');
-                })
-                .catch((error) => {
-                    setIsLoggedInSuccessful(false);
-                    setIsLoggingIn(false);
-                    setIsLoggedInSuccessFailure(true);
-                    setLoggeInStatusMsg(error.code);
-                    setLoggeInStatusIcon(require('../Images/icon-error.gif'));
-                    setLoggeInStatusButtonIcon('refresh-cw');
-                    setLoggeInStatusButtonTitle('Retry');
-                })
-        }
     }
 
     const loginStatusFun = () => {

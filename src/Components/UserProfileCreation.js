@@ -37,7 +37,7 @@ export default function UserProfileCreation() {
             } else {
                 navigation.reset({
                     index: 0,
-                    routes: [{ name: 'LoginRegister' }],
+                    routes: [{ name: 'LogIn' }],
                 });
                 console.log('No user is signed in');
             }

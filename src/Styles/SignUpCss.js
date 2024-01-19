@@ -162,6 +162,7 @@ export const Styles=StyleSheet.create({
         marginTop:7,
         marginBottom:7,
         textAlign:'center',
+        color:'green',
         fontSize:15,
     },
     otpInputContainerStyle:{

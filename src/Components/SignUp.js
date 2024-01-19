@@ -5,7 +5,8 @@ import { useNavigation } from '@react-navigation/native';
 
 import { Styles } from "../Styles/SignUpCss";
 
-import { getAuth, createUserWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword, onAuthStateChanged, PhoneAuthProvider, signInWithPhoneNumber, signInWithCredential } from "firebase/auth";
+import {app} from '../config/firebase'
 import { getDatabase, ref, set } from 'firebase/database'
 import { setDoc, doc } from 'firebase/firestore'
 import { firestore } from "../config/firebase";
@@ -14,11 +15,15 @@ import OTPInputView from '@twotalltotems/react-native-otp-input';
 import Clipboard from "@react-native-community/clipboard";
 import OTPTextView from "react-native-otp-textinput";
 import { TouchableOpacity } from "react-native-gesture-handler";
+import { FirebaseRecaptchaVerifierModal } from "expo-firebase-recaptcha";
+
+import { passwordEncoder } from "../Security/Encoder";
 
 export default function SignUp(props) {
 
     const auth = getAuth();
     const navigation = useNavigation();
+    const recaptchaVerifier = useRef(null);
 
     const [currentUserID, setCurrentUserId] = useState('');
     const [isUserProfileVerified, setIsUserProfileVerified] = useState(false);
@@ -49,7 +54,11 @@ export default function SignUp(props) {
     const [loggeInStatusIcon, setLoggeInStatusIcon] = useState(require('../Images/icon-success.gif'));
     const [loggeInStatusButtonIcon, setLoggeInStatusButtonIcon] = useState('');
     const [loggeInStatusButtonTitle, setLoggeInStatusButtonTitle] = useState('');
+
     const [showOTPOvelay, setShowOTPOvelay] = useState(false);
+    const [entertedOtp, setEntertedOtp]=useState('');
+    const [otpVerifyButtonDisabled, setOtpVerifyButtonDisabled]=useState(true);
+    const [otpCredentials, setOtpCredentials]=useState(true);
 
     const genderButtons = ['Male', 'Female'];
     const [genderSelectedIndex, setGenderSelectedIndex] = useState(0);
@@ -58,7 +67,7 @@ export default function SignUp(props) {
     const [userEmail, setUserEmail] = useState('');
     const [userModifiedEmail, setUserModifiedEmail] = useState('');
     const [userGender, setUserGender] = useState('');
-    const [userPhone, setUserPhone] = useState('6356726534');
+    const [userPhone, setUserPhone] = useState('');
     const [userPassword, setUserPassword] = useState('');
     const [userConfirmPassword, setUserConfirmPassword] = useState('');
     const [userMaskedPassword, setUserMaskedPassword] = useState('');
@@ -88,7 +97,7 @@ export default function SignUp(props) {
             title: 'Proceed',
             containerStyle: Styles.bottomSheetProceedButtonContainer,
             titleStyle: Styles.bottomSheetProceedButtonTitle,
-            onPress: () => { setIsVisibleBottomSheet(false); registerUserAccountFun() },
+            onPress: () => { setIsVisibleBottomSheet(false); sendOTPtoUserMobile() },
             icon: 'check-circle',
             iconColor: 'white'
         },
@@ -133,7 +142,7 @@ export default function SignUp(props) {
         setUserName('');
         setUserEmail('');
         setUserModifiedEmail('');
-        setUserPhone('6356726534');
+        setUserPhone('');
         setUserPassword('');
         setUserConfirmPassword('');
         setUserMaskedPassword('');
@@ -145,6 +154,7 @@ export default function SignUp(props) {
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (user) {
+                console.log()
                 setCurrentUserId(user.uid);
             }
         });
@@ -256,7 +266,15 @@ export default function SignUp(props) {
 
     useEffect(() => {
         storeUserDetailsInFirebase();
-    }, [currentUserID])
+    }, [currentUserID]);
+
+    useEffect(()=>{
+        if(entertedOtp.length===6){
+            setOtpVerifyButtonDisabled(false);
+        }else{
+            setOtpVerifyButtonDisabled(true);
+        }
+    },[entertedOtp]);
 
 
     const handleSubmit = async () => {
@@ -264,11 +282,11 @@ export default function SignUp(props) {
         setIsUserProfileVerified(false);
         if (userName.length < 4) {
             ToastAndroid.show("Enter valid name", ToastAndroid.SHORT, ToastAndroid.CENTER);
-        } else if (!emailRegex.test(userEmail)) {
-            ToastAndroid.show("Enter valid email id", ToastAndroid.SHORT, ToastAndroid.CENTER);
         } else if (!mobileRegex.test(userPhone)) {
             ToastAndroid.show("Enter valid mobile number", ToastAndroid.SHORT, ToastAndroid.CENTER);
-        } else if (!passwordRegex.test(userPassword)) {
+        }  else if (!emailRegex.test(userEmail)) {
+            ToastAndroid.show("Enter valid email id", ToastAndroid.SHORT, ToastAndroid.CENTER);
+        }  else if (!passwordRegex.test(userPassword)) {
             ToastAndroid.show("Enter valid Password as per requirements", ToastAndroid.SHORT, ToastAndroid.CENTER);
         } else if (!passwordRegex.test(userConfirmPassword) || userPassword !== userConfirmPassword) {
             ToastAndroid.show("Both Password should be same", ToastAndroid.SHORT, ToastAndroid.CENTER);
@@ -283,37 +301,91 @@ export default function SignUp(props) {
         }
     }
 
-    const registerUserAccountFun = () => {
+    const sendOTPtoUserMobile = async() => {
+        setShowOTPOvelay(false);
+        setOverlayStatusMsg('Recaptcha Verifying...');
         setShowOverlay(true);
         setIsLoggingIn(true);
         setIsLoggedInSuccessFailure(false);
-        setOverlayStatusMsg('Creating your account...');
-        createUserWithEmailAndPassword(auth, userEmail, userPassword)
-            .then((userCredential) => {
-                setOverlayStatusMsg('Storing your details in our database...')
+        try{
+            const phoneProvider = new PhoneAuthProvider(auth);
+            setOverlayStatusMsg('Sending OTP...');
+            const verificationId= await phoneProvider.verifyPhoneNumber(
+                '+91'+userPhone,
+                recaptchaVerifier.current
+            )
+            console.log(verificationId);
+            setOtpCredentials(verificationId);
+            setShowOverlay(false);
+            setIsLoggingIn(false);
+            setIsLoggedInSuccessFailure(false);
+            setShowOTPOvelay(true);
+        }catch(error){
+            ToastAndroid.show("Couldn't send OTP at the moment. Try after sometime.", ToastAndroid.SHORT, ToastAndroid.CENTER);
+            setShowOverlay(false);
+            setIsLoggingIn(false);
+            setIsLoggedInSuccessFailure(false);
+            console.log(error);
+        }
+        // createUserWithEmailAndPassword(auth, userEmail, userPassword)
+        //     .then((userCredential) => {
+        //         setOverlayStatusMsg('Storing your details in our database...')
+        //     })
+        //     .catch((error) => {
+        //         setIsLoggedInSuccessful(false);
+        //         setIsLoggingIn(false);
+        //         setIsLoggedInSuccessFailure(true);
+        //         setLoggeInStatusMsg(error.code);
+        //         setLoggeInStatusIcon(require('../Images/icon-error.gif'));
+        //         setLoggeInStatusButtonIcon('refresh-cw');
+        //         setLoggeInStatusButtonTitle('Retry');
+        //     });
+    }
+
+    const signInWithPhoneNumberFun= async()=>{
+        try{
+            setShowOTPOvelay(false);
+            setOverlayStatusMsg('Verifying OTP...');
+            setShowOverlay(true);
+            setIsLoggingIn(true);
+            setIsLoggedInSuccessFailure(false);
+            const credential = PhoneAuthProvider.credential(otpCredentials,entertedOtp); 
+            signInWithCredential(auth,credential)
+            .then(()=>{
+                console.log("Successfully")
+                storeUserDetailsInFirebase();
             })
-            .catch((error) => {
-                setIsLoggedInSuccessful(false);
-                setIsLoggingIn(false);
-                setIsLoggedInSuccessFailure(true);
-                setLoggeInStatusMsg(error.code);
-                setLoggeInStatusIcon(require('../Images/icon-error.gif'));
-                setLoggeInStatusButtonIcon('refresh-cw');
-                setLoggeInStatusButtonTitle('Retry');
-            });
+            .catch((error)=>{
+                console.log(error.message)
+                ToastAndroid.show(error.message, ToastAndroid.SHORT, ToastAndroid.CENTER);
+            })
+        }catch(error){
+            setShowOverlay(false);
+            setIsLoggedInSuccessful(false);
+            setIsLoggingIn(false);
+            setIsLoggedInSuccessFailure(true);
+            setLoggeInStatusMsg("Error:"+ error.message+". Please try again later.");
+            setLoggeInStatusIcon(require('../Images/icon-error.gif'));
+            setLoggeInStatusButtonIcon('refresh-cw');
+            setLoggeInStatusButtonTitle('Retry');
+            console.log(error.message)
+        }
     }
 
     const storeUserDetailsInFirebase = async () => {
-        console.log("hi")
-        if (currentUserID && isUserProfileVerified) {
-            console.log("hello");
+            setShowOTPOvelay(false);
+            setOverlayStatusMsg('Storing your personal details in Database...');
+            setShowOverlay(true);
+            setIsLoggingIn(true);
+            setIsLoggedInSuccessFailure(false);
+            const encodedPassword=passwordEncoder(userPassword);
             try {
-                setDoc(doc(firestore, "Users", currentUserID.toString(), "Personal Details", "Data"), {
-                    Name: userName,
+                setDoc(doc(firestore, "Users", userPhone, "Personal Details", "Data"), {
+                    Name:userName,
                     Mail: userEmail,
                     Gender: userGender,
                     Phone: userPhone,
-                    Password: userMaskedPassword
+                    Password: encodedPassword
                 });
                 setIsLoggedInSuccessful(true);
                 setIsLoggingIn(false);
@@ -323,6 +395,7 @@ export default function SignUp(props) {
                 setLoggeInStatusButtonIcon('home');
                 setLoggeInStatusButtonTitle('Home');
             } catch (e) {
+                console.log(e);
                 setIsLoggedInSuccessful(false);
                 setIsLoggingIn(false);
                 setIsLoggedInSuccessFailure(true);
@@ -331,20 +404,6 @@ export default function SignUp(props) {
                 setLoggeInStatusButtonIcon('refresh-cw');
                 setLoggeInStatusButtonTitle('Retry');
             }
-        }
-    }
-
-
-
-
-    const StoreCompanyinFirestore = async () => {
-        console.log("hello pop")
-        try {
-            setDoc(doc(firestore, "Others", "Cities"), { "data": cities });
-            console.log("Success")
-        } catch (e) {
-            console.log(e);
-        }
     }
 
     const loginStatusFun = () => {
@@ -357,22 +416,17 @@ export default function SignUp(props) {
         }
     }
 
-    let otpInput = useRef(null);
-
-    // const clearText = () => {
-    //     otpInput.current.clear();
-    // }
-
-    // const setText = () => {
-    //     otpInput.current.setValue("123456");
-    // }
-
     return (
         <ScrollView>
             <View>
                 <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
                     <View>
                         <View style={Styles.contaier}>
+                            <FirebaseRecaptchaVerifierModal
+                                ref={recaptchaVerifier}
+                                firebaseConfig={app.options}
+                                attemptInvisibleVerification='true'
+                            />
                             <Input placeholder="Enter Full Name..."
                                 style={Styles.input}
                                 inputContainerStyle={Styles.inputContainer}
@@ -382,25 +436,6 @@ export default function SignUp(props) {
                                 onChangeText={(text) => setUserName(text)}
                                 value={userName}
                                 rightIcon={<Icon name={userNameSuccessIcon} type="feather" color={userNameSuccessIconColor} />}
-                            />
-                            <Input placeholder="Enter Email ID..."
-                                style={Styles.input}
-                                inputContainerStyle={Styles.inputContainer}
-                                label='Email'
-                                labelStyle={Styles.lableStyle}
-                                leftIcon={<Icon name="email" color='#3156c4' />}
-                                keyboardType='email-address'
-                                onChangeText={(text) => setUserEmail(text.toLocaleLowerCase())}
-                                value={userEmail}
-                                rightIcon={<Icon name={userEmailSuccessIcon} type="feather" color={userEmailSuccessIconColor} />}
-                            />
-                            <Text style={Styles.textComponetStyle}>Gender</Text>
-                            <ButtonGroup buttons={genderButtons}
-                                selectedIndex={genderSelectedIndex}
-                                onPress={(ind) => setGenderSelectedIndex(ind)}
-                                containerStyle={Styles.buttonGroupContainer}
-                                textStyle={Styles.textStyle}
-                                selectedButtonStyle={Styles.selectedButtonStyle}
                             />
                             <Input placeholder="Enter Mobile Number..."
                                 style={Styles.input}
@@ -412,6 +447,25 @@ export default function SignUp(props) {
                                 onChangeText={(text) => setUserPhone(text)}
                                 value={userPhone}
                                 rightIcon={<Icon name={userPhoneSuccessIcon} type="feather" color={userPhoneSuccessIconColor} />}
+                            />
+                            <Text style={Styles.textComponetStyle}>Gender</Text>
+                            <ButtonGroup buttons={genderButtons}
+                                selectedIndex={genderSelectedIndex}
+                                onPress={(ind) => setGenderSelectedIndex(ind)}
+                                containerStyle={Styles.buttonGroupContainer}
+                                textStyle={Styles.textStyle}
+                                selectedButtonStyle={Styles.selectedButtonStyle}
+                            />
+                            <Input placeholder="Enter Email ID..."
+                                style={Styles.input}
+                                inputContainerStyle={Styles.inputContainer}
+                                label='Email'
+                                labelStyle={Styles.lableStyle}
+                                leftIcon={<Icon name="email" color='#3156c4' />}
+                                keyboardType='email-address'
+                                onChangeText={(text) => setUserEmail(text.toLocaleLowerCase())}
+                                value={userEmail}
+                                rightIcon={<Icon name={userEmailSuccessIcon} type="feather" color={userEmailSuccessIconColor} />}
                             />
                             <Input placeholder="Enter Password..."
                                 style={Styles.input}
@@ -454,7 +508,7 @@ export default function SignUp(props) {
                                 iconPosition='right'
                                 loading={false} buttonStyle={Styles.button}
                                 onPress={handleSubmit}
-                            // onPress={StoreCompanyinFirestore} 
+                                // onPress={StoreCompanyinFirestore} 
                             />
 
 
@@ -472,8 +526,8 @@ export default function SignUp(props) {
                     </View>
                 </TouchableWithoutFeedback>
 
-                <Overlay isVisible={!showOTPOvelay} overlayStyle={Styles.otpOverlayStyle}>
-                    <Text onPress={()=>setShowOTPOvelay(true)} style={Styles.cancelButtonText}>x</Text>
+                <Overlay isVisible={showOTPOvelay} overlayStyle={Styles.otpOverlayStyle}>
+                    <Text onPress={()=>setShowOTPOvelay(false)} style={Styles.cancelButtonText}>x</Text>
                     
                     <View style={Styles.otpOverlayContainerStyle}>
                         <Text style={Styles.otpOverlayTitle}>Mobile Verification</Text>
@@ -484,16 +538,19 @@ export default function SignUp(props) {
                                 inputCount={6}
                                 tintColor='#670d94'
                                 containerStyle={Styles.otpContainerStyle}
-                                textInputStyle={Styles.otpTextInputStyle} />
+                                textInputStyle={Styles.otpTextInputStyle} 
+                                handleTextChange={(text)=>setEntertedOtp(text)}/>
 
                             <Button
+                                disabled={otpVerifyButtonDisabled}
                                 title='Verify OTP'
                                 buttonStyle={Styles.otpContainerVerifyButton}
+                                onPress={()=>signInWithPhoneNumberFun()}
                             />
                         </View>
                         <Text style={Styles.otpOverlayResendOTPHint} >Didn't you receive any code?</Text>
                         <TouchableOpacity>
-                            <Text style={Styles.otpOverlayResendOTP}>Resend New Code</Text>
+                            <Text style={Styles.otpOverlayResendOTP} onPress={()=>sendOTPtoUserMobile()}>Resend New Code</Text>
                         </TouchableOpacity>
                     </View>
 
