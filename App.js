@@ -17,6 +17,7 @@ import Index from "./src/Components/Index";
 import UserProfileCreation from "./src/Components/UserProfileCreation";
 import LogIn from "./src/Components/LogIn";
 import { Provider } from "react-redux";
+import SignUp from "./src/Components/SignUp";
 import { Store } from "./src/Redux/Store/Store";
 
 const Stack = createStackNavigator();
@@ -29,6 +30,7 @@ export default function App() {
         <Stack.Navigator initialRouteName="LogIn">
           <Stack.Screen name="Index" component={Index} options={{ headerShown: false }} />
           <Stack.Screen name="LogIn" component={LogIn} />
+          <Stack.Screen name="SignUp" component={SignUp} />
           <Stack.Screen name="UserProfileCreation" component={UserProfileCreation} options={{ headerShown: false }} />
         </Stack.Navigator>
       </NavigationContainer>
