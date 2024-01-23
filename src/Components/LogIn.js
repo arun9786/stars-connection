@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Keyboard, ScrollView, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
+import { ActivityIndicator, Keyboard, ScrollView, ToastAndroid, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import { Button, Icon, Image, Input, Overlay, Text } from "react-native-elements";
 import { useNavigation } from '@react-navigation/native';
 import { RadioGroup } from "react-native-radio-buttons-group";
@@ -12,6 +12,7 @@ import { Styles } from "../Styles/LogInCss";
 import { mobileRegex, passwordRegex } from '../Others/Regex'
 import basicsStrings from '../Strings/basics.json'
 import { checkInternetConnection } from "../Others/InternetConnectionStatus";
+import { passwordEncoder } from "../Security/Encoder";
 
 
 export default function LogIn(props) {
@@ -102,83 +103,75 @@ export default function LogIn(props) {
     }
 
     const LogInWithEmailFun = async () => {
-        console.log("hey")
-        // if (!mobileRegex.test(userPhone)) {
-        //     setIsError(true);
-        //     setErrorMsg('Please enter a valid phone number.')
-        // } else if (!passwordRegex.test(userPassword)) {
-        //     setIsError(true);
-        //     if (userPassword.length > 0) {
-        //         setErrorMsg('The password you entered is incorrect.')
-        //     } else {
-        //         setErrorMsg('Please enter your password.');
-        //     }
-        // } else {
-        const networkStatus = await checkInternetConnection();
-        console.log(networkStatus)
-        if (networkStatus) {
-            console.log("inside")
-            setIsError(false);
-            setErrorMsg('');
-            setShowOverlay(true);
-            setIsLoggingIn(true);
-            setIsLoggedInSuccessFailure(false);
-            getDoc(doc(firestore, "Users", "6379185149", "Personal Details", "Data"))
-                .then((result) => {
-                    setShowOverlay(false);
-                    setIsLoggingIn(false);
-                    setIsLoggedInSuccessFailure(false);
-                    console.log(result.data());
-                })
-                .catch((error) => {
-                    setShowOverlay(false);
-                    setIsLoggingIn(false);
-                    setIsLoggedInSuccessFailure(false);
-                    setIsLoggedInSuccessFailure(true);
-                    console.log(error);
-                })
-
+        if (!mobileRegex.test(userPhone)) {
+            setIsError(true);
+            setErrorMsg('Please enter a valid phone number.')
+        } else if (!passwordRegex.test(userPassword)) {
+            setIsError(true);
+            if (userPassword.length > 0) {
+                setErrorMsg('The password you entered is incorrect.')
+            } else {
+                setErrorMsg('Please enter your password.');
+            }
+        } else {
+            let networkStatus = await checkInternetConnection();
+            if (networkStatus) {
+                setIsError(false);
+                setErrorMsg('');
+                setShowOverlay(true);
+                setIsLoggingIn(true);
+                setIsLoggedInSuccessFailure(false);
+                getDoc(doc(firestore, "Users", "6379185147", "Personal Details", "Data"))
+                    .then((result) => {
+                        console.log(result.data());
+                        if (result.data()) {
+                            let encodedPassword = passwordEncoder(userPassword);
+                            if (result.data().Password === encodedPassword) {
+                                setIsLoggedInSuccessful(true);
+                                setIsLoggingIn(false);
+                                setIsLoggedInSuccessFailure(true);
+                                setLoggeInStatusMsg('Sign-in successfull...');
+                                setLoggeInStatusIcon(require('../Images/icon-success.gif'));
+                                setLoggeInStatusButtonIcon('home');
+                                setLoggeInStatusButtonTitle('Home');
+                                console.log("true")
+                            } else {
+                                setIsLoggedInSuccessful(false);
+                                setIsLoggingIn(false);
+                                setIsLoggedInSuccessFailure(true);
+                                setLoggeInStatusMsg("Invalid Password...");
+                                setLoggeInStatusIcon(require('../Images/icon-error.gif'));
+                                setLoggeInStatusButtonIcon('refresh-cw');
+                                setLoggeInStatusButtonTitle('Retry');
+                                console.log("Invalid User")
+                            }
+                        } else {
+                            setShowOverlay(false);
+                            setIsLoggingIn(false);
+                            ToastAndroid.show("Oops! Unregistered mobile number. Verify or Create a new account.", ToastAndroid.LONG, ToastAndroid.CENTER);
+                            console.log("Invalid Mobile number")
+                        }
+                    })
+                    .catch((error) => {
+                        setShowOverlay(false);
+                        setIsLoggingIn(false);
+                        setIsLoggedInSuccessFailure(false);
+                        setIsLoggedInSuccessFailure(true);
+                        console.log(error);
+                        ToastAndroid.show(error.message, ToastAndroid.LONG, ToastAndroid.CENTER);
+                    })
+            }
         }
-        console.log("ho")
-
-        // getDoc(doc(firestore, "Users", "6379185147"))
-        // .then((result)=>{
-        //     setShowOverlay(false);
-        //     setIsLoggingIn(false);
-        //     setIsLoggedInSuccessFailure(false);
-        //     console.log(result.data());
-        // })
-        // .catch((error)=>{
-        //     console.log("Error: "+error);
-        //     setShowOverlay(false);
-        //     setIsLoggingIn(false);
-        //     setIsLoggedInSuccessFailure(false);
-        // })
-        // signInWithEmailAndPassword(auth, userPhone, userPassword)
-        //     .then((userCredential) => {
-        //         const user = userCredential.user;
-        //         setIsLoggedInSuccessful(true);
-        //         setIsLoggingIn(false);
-        //         setIsLoggedInSuccessFailure(true);
-        //         setLoggeInStatusMsg('Sign-in successfull...');
-        //         setLoggeInStatusIcon(require('../Images/icon-success.gif'));
-        //         setLoggeInStatusButtonIcon('home');
-        //         setLoggeInStatusButtonTitle('Home');
-        //     })
-        //     .catch((error) => {
-        //         setIsLoggedInSuccessful(false);
-        //         setIsLoggingIn(false);
-        //         setIsLoggedInSuccessFailure(true);
-        //         setLoggeInStatusMsg(error.code);
-        //         setLoggeInStatusIcon(require('../Images/icon-error.gif'));
-        //         setLoggeInStatusButtonIcon('refresh-cw');
-        //         setLoggeInStatusButtonTitle('Retry');
-        //     })
-        // }
     }
 
     const loginStatusFun = () => {
         setShowOverlay(false);
+        if (isLoggedInSuccessful) {
+            navigation.reset({
+                index: 0,
+                routes: [{ name: 'Index' }],
+            });
+        }
     }
 
     return (

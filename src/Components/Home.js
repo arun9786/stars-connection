@@ -33,10 +33,6 @@ export default function Home() {
                 console.log("Home: Already signed In");
                 setCurrentUserID(user.uid);
             } else {
-                navigation.reset({
-                    index: 0,
-                    routes: [{ name: 'LogIn' }],
-                });
                 console.log('No user is signed in');
             }
         });
@@ -82,10 +78,9 @@ export default function Home() {
     }
 
     const logOutFun = () => {
-        signOut(auth).then(() => {
-
-        }).catch((error) => {
-            console.log('logout not', error)
+        navigation.reset({
+            index: 0,
+            routes: [{ name: 'LogIn' }],
         });
     }
 
