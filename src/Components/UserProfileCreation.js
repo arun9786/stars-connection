@@ -33,7 +33,7 @@ export default function UserProfileCreation() {
         setShowFinalVerificationPage(false);
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (user) {
-                console.log("Already signed In");
+                console.log("Login:Already signed In");
             } else {
                 navigation.reset({
                     index: 0,

@@ -30,7 +30,7 @@ export default function Home() {
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (user) {
-                console.log("Already signed In");
+                console.log("Home: Already signed In");
                 setCurrentUserID(user.uid);
             } else {
                 navigation.reset({

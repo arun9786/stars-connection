@@ -2,18 +2,16 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Keyboard, ScrollView, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import { Button, Icon, Image, Input, Overlay, Text } from "react-native-elements";
 import { useNavigation } from '@react-navigation/native';
+import { RadioGroup } from "react-native-radio-buttons-group";
+
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth'
+import { firestore } from "../config/firebase";
+import { collection, doc, getDoc, getDocs } from 'firebase/firestore'
 
 import { Styles } from "../Styles/LogInCss";
-
-import {
-    getAuth, signInWithEmailAndPassword, onAuthStateChanged, GoogleAuthProvider, signInWithCredential, signOut,
-    PhoneAuthProvider, RecaptchaVerifier
-} from 'firebase/auth'
-
-import { app } from '../config/firebase'
-
+import { mobileRegex, passwordRegex } from '../Others/Regex'
 import basicsStrings from '../Strings/basics.json'
-import { RadioGroup } from "react-native-radio-buttons-group";
+import { checkInternetConnection } from "../Others/InternetConnectionStatus";
 
 
 export default function LogIn(props) {
@@ -30,7 +28,7 @@ export default function LogIn(props) {
     const [loggeInStatusButtonIcon, setLoggeInStatusButtonIcon] = useState('');
     const [loggeInStatusButtonTitle, setLoggeInStatusButtonTitle] = useState('');
 
-    const [userEmail, setUserEmail] = useState('');
+    const [userPhone, setUserPhone] = useState('');
     const [userPassword, setUserPassword] = useState('');
 
     const radioButtons = useMemo(() => ([
@@ -58,9 +56,6 @@ export default function LogIn(props) {
     const auth = getAuth();
     const navigation = useNavigation();
 
-    const emailRegex = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/;
-    const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@#$%^&+=!])(?=\S+$).{8,}$/;
-
     const recaptchaVerifier = useRef(null);
 
     //   const attemptInvisibleVerification = false;
@@ -68,7 +63,7 @@ export default function LogIn(props) {
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (user) {
-                console.log("Already signed In in login page")
+                console.log("Login:Already signed In")
             } else {
                 console.log('No user is signed in');
             }
@@ -90,7 +85,7 @@ export default function LogIn(props) {
         setLoggeInStatusIcon(require('../Images/icon-success.gif'));
         setLoggeInStatusButtonIcon('');
         setLoggeInStatusButtonTitle('');
-        setUserEmail('');
+        setUserPhone('');
         setUserPassword('');
     }, [props])
 
@@ -102,14 +97,15 @@ export default function LogIn(props) {
         }
     }, [passwordVisible]);
 
-    const openSignupPage=()=>{
+    const openSignupPage = () => {
         navigation.navigate('SignUp');
     }
 
     const LogInWithEmailFun = async () => {
-        // if (!emailRegex.test(userEmail)) {
+        console.log("hey")
+        // if (!mobileRegex.test(userPhone)) {
         //     setIsError(true);
-        //     setErrorMsg('Please enter a valid email address.')
+        //     setErrorMsg('Please enter a valid phone number.')
         // } else if (!passwordRegex.test(userPassword)) {
         //     setIsError(true);
         //     if (userPassword.length > 0) {
@@ -118,31 +114,66 @@ export default function LogIn(props) {
         //         setErrorMsg('Please enter your password.');
         //     }
         // } else {
-        //     setIsError(false);
-        //     setErrorMsg('');
-        //     setShowOverlay(true);
-        //     setIsLoggingIn(true);
+        const networkStatus = await checkInternetConnection();
+        console.log(networkStatus)
+        if (networkStatus) {
+            console.log("inside")
+            setIsError(false);
+            setErrorMsg('');
+            setShowOverlay(true);
+            setIsLoggingIn(true);
+            setIsLoggedInSuccessFailure(false);
+            getDoc(doc(firestore, "Users", "6379185149", "Personal Details", "Data"))
+                .then((result) => {
+                    setShowOverlay(false);
+                    setIsLoggingIn(false);
+                    setIsLoggedInSuccessFailure(false);
+                    console.log(result.data());
+                })
+                .catch((error) => {
+                    setShowOverlay(false);
+                    setIsLoggingIn(false);
+                    setIsLoggedInSuccessFailure(false);
+                    setIsLoggedInSuccessFailure(true);
+                    console.log(error);
+                })
+
+        }
+        console.log("ho")
+
+        // getDoc(doc(firestore, "Users", "6379185147"))
+        // .then((result)=>{
+        //     setShowOverlay(false);
+        //     setIsLoggingIn(false);
         //     setIsLoggedInSuccessFailure(false);
-        //     signInWithEmailAndPassword(auth, userEmail, userPassword)
-        //         .then((userCredential) => {
-        //             const user = userCredential.user;
-        //             setIsLoggedInSuccessful(true);
-        //             setIsLoggingIn(false);
-        //             setIsLoggedInSuccessFailure(true);
-        //             setLoggeInStatusMsg('Sign-in successfull...');
-        //             setLoggeInStatusIcon(require('../Images/icon-success.gif'));
-        //             setLoggeInStatusButtonIcon('home');
-        //             setLoggeInStatusButtonTitle('Home');
-        //         })
-        //         .catch((error) => {
-        //             setIsLoggedInSuccessful(false);
-        //             setIsLoggingIn(false);
-        //             setIsLoggedInSuccessFailure(true);
-        //             setLoggeInStatusMsg(error.code);
-        //             setLoggeInStatusIcon(require('../Images/icon-error.gif'));
-        //             setLoggeInStatusButtonIcon('refresh-cw');
-        //             setLoggeInStatusButtonTitle('Retry');
-        //         })
+        //     console.log(result.data());
+        // })
+        // .catch((error)=>{
+        //     console.log("Error: "+error);
+        //     setShowOverlay(false);
+        //     setIsLoggingIn(false);
+        //     setIsLoggedInSuccessFailure(false);
+        // })
+        // signInWithEmailAndPassword(auth, userPhone, userPassword)
+        //     .then((userCredential) => {
+        //         const user = userCredential.user;
+        //         setIsLoggedInSuccessful(true);
+        //         setIsLoggingIn(false);
+        //         setIsLoggedInSuccessFailure(true);
+        //         setLoggeInStatusMsg('Sign-in successfull...');
+        //         setLoggeInStatusIcon(require('../Images/icon-success.gif'));
+        //         setLoggeInStatusButtonIcon('home');
+        //         setLoggeInStatusButtonTitle('Home');
+        //     })
+        //     .catch((error) => {
+        //         setIsLoggedInSuccessful(false);
+        //         setIsLoggingIn(false);
+        //         setIsLoggedInSuccessFailure(true);
+        //         setLoggeInStatusMsg(error.code);
+        //         setLoggeInStatusIcon(require('../Images/icon-error.gif'));
+        //         setLoggeInStatusButtonIcon('refresh-cw');
+        //         setLoggeInStatusButtonTitle('Retry');
+        //     })
         // }
     }
 
@@ -177,8 +208,8 @@ export default function LogIn(props) {
                             inputContainerStyle={Styles.inputContainer}
                             labelStyle={Styles.lableStyle}
                             keyboardType='phone-pad'
-                            onChangeText={(text) => setUserEmail(text.toLocaleLowerCase())}
-                            value={userEmail}
+                            onChangeText={(text) => setUserPhone(text)}
+                            value={userPhone}
                             containerStyle={{ margin: 0, padding: 0 }}
                             leftIcon={<Icon name='phone' color='#8a8703' style={Styles.inputIcons} />}
                         />

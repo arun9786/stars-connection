@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 
 import { Styles } from "../Styles/SignUpCss";
 
-import { getAuth, createUserWithEmailAndPassword, onAuthStateChanged, PhoneAuthProvider, signInWithPhoneNumber, signInWithCredential } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword, onAuthStateChanged, PhoneAuthProvider, signInWithPhoneNumber, signInWithCredential, signInWithEmailAndPassword } from "firebase/auth";
 import {app} from '../config/firebase'
 import { getDatabase, ref, set } from 'firebase/database'
 import { setDoc, doc } from 'firebase/firestore'
@@ -264,10 +264,6 @@ export default function SignUp(props) {
         setUserGender(genderButtons[genderSelectedIndex])
     }, [genderSelectedIndex])
 
-    useEffect(() => {
-        storeUserDetailsInFirebase();
-    }, [currentUserID]);
-
     useEffect(()=>{
         if(entertedOtp.length===6){
             setOtpVerifyButtonDisabled(false);
@@ -309,37 +305,28 @@ export default function SignUp(props) {
         setIsLoggedInSuccessFailure(false);
         try{
             const phoneProvider = new PhoneAuthProvider(auth);
-            setOverlayStatusMsg('Sending OTP...');
             const verificationId= await phoneProvider.verifyPhoneNumber(
                 '+91'+userPhone,
                 recaptchaVerifier.current
             )
+            setOverlayStatusMsg('Sending OTP...');
             console.log(verificationId);
-            setOtpCredentials(verificationId);
-            setShowOverlay(false);
-            setIsLoggingIn(false);
-            setIsLoggedInSuccessFailure(false);
-            setShowOTPOvelay(true);
+            const timer = setTimeout(() => {
+                ToastAndroid.show("OTP sent to your mobile", ToastAndroid.SHORT, ToastAndroid.CENTER);
+                setOtpCredentials(verificationId);
+                setShowOverlay(false);
+                setIsLoggingIn(false);
+                setIsLoggedInSuccessFailure(false);
+                setShowOTPOvelay(true);
+            }, 1500);
+            return () => clearTimeout(timer);
         }catch(error){
-            ToastAndroid.show("Couldn't send OTP at the moment. Try after sometime.", ToastAndroid.SHORT, ToastAndroid.CENTER);
+            ToastAndroid.show(error.message, ToastAndroid.LONG, ToastAndroid.CENTER);
             setShowOverlay(false);
             setIsLoggingIn(false);
             setIsLoggedInSuccessFailure(false);
             console.log(error);
         }
-        // createUserWithEmailAndPassword(auth, userEmail, userPassword)
-        //     .then((userCredential) => {
-        //         setOverlayStatusMsg('Storing your details in our database...')
-        //     })
-        //     .catch((error) => {
-        //         setIsLoggedInSuccessful(false);
-        //         setIsLoggingIn(false);
-        //         setIsLoggedInSuccessFailure(true);
-        //         setLoggeInStatusMsg(error.code);
-        //         setLoggeInStatusIcon(require('../Images/icon-error.gif'));
-        //         setLoggeInStatusButtonIcon('refresh-cw');
-        //         setLoggeInStatusButtonTitle('Retry');
-        //     });
     }
 
     const signInWithPhoneNumberFun= async()=>{
@@ -352,10 +339,12 @@ export default function SignUp(props) {
             const credential = PhoneAuthProvider.credential(otpCredentials,entertedOtp); 
             signInWithCredential(auth,credential)
             .then(()=>{
-                console.log("Successfully")
                 storeUserDetailsInFirebase();
             })
             .catch((error)=>{
+                setShowOTPOvelay(true);
+                setShowOverlay(false);
+                setIsLoggingIn(false);
                 console.log(error.message)
                 ToastAndroid.show(error.message, ToastAndroid.SHORT, ToastAndroid.CENTER);
             })
@@ -369,12 +358,13 @@ export default function SignUp(props) {
             setLoggeInStatusButtonIcon('refresh-cw');
             setLoggeInStatusButtonTitle('Retry');
             console.log(error.message)
+            ToastAndroid.show(error.message, ToastAndroid.SHORT, ToastAndroid.CENTER);
         }
     }
 
     const storeUserDetailsInFirebase = async () => {
             setShowOTPOvelay(false);
-            setOverlayStatusMsg('Storing your personal details in Database...');
+            setOverlayStatusMsg('Storing your details in Database...');
             setShowOverlay(true);
             setIsLoggingIn(true);
             setIsLoggedInSuccessFailure(false);
