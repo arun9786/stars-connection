@@ -115,6 +115,7 @@ export const Styles=StyleSheet.create({
         fontSize:18,
     },
     overlayVerifingCredentials:{
+        marginTop:5,
         fontSize:16,
     },
     overlayActivityIndicator:{

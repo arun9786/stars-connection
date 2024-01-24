@@ -3,13 +3,13 @@ import { ActivityIndicator, Keyboard, KeyboardAvoidingView, Platform, SafeAreaVi
 import { BottomSheet, Button, ButtonGroup, Icon, Image, Input, ListItem, Overlay, Text } from "react-native-elements";
 import { useNavigation } from '@react-navigation/native';
 
-import { Styles } from "../Styles/SignUpCss";
+import { Styles } from "../../Styles/Registration/SignUpCss";
 
 import { getAuth, createUserWithEmailAndPassword, onAuthStateChanged, PhoneAuthProvider, signInWithPhoneNumber, signInWithCredential, signInWithEmailAndPassword } from "firebase/auth";
-import {app} from '../config/firebase'
+import {app} from '../../config/firebase'
 import { getDatabase, ref, set } from 'firebase/database'
 import { setDoc, doc } from 'firebase/firestore'
-import { firestore } from "../config/firebase";
+import { firestore } from "../../config/firebase";
 import { async } from "@firebase/util";
 import OTPInputView from '@twotalltotems/react-native-otp-input';
 import Clipboard from "@react-native-community/clipboard";
@@ -17,7 +17,8 @@ import OTPTextView from "react-native-otp-textinput";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { FirebaseRecaptchaVerifierModal } from "expo-firebase-recaptcha";
 
-import { passwordEncoder } from "../Security/Encoder";
+import { passwordEncoder } from "../../Security/Encoder";
+import {passwordRegex} from '../../Others/Regex'
 
 export default function SignUp(props) {
 
@@ -51,7 +52,7 @@ export default function SignUp(props) {
     const [isLoggedInSuccessful, setIsLoggedInSuccessful] = useState(false);
     const [isLoggedInSuccessFailure, setIsLoggedInSuccessFailure] = useState(false);
     const [loggeInStatusMsg, setLoggeInStatusMsg] = useState('');
-    const [loggeInStatusIcon, setLoggeInStatusIcon] = useState(require('../Images/icon-success.gif'));
+    const [loggeInStatusIcon, setLoggeInStatusIcon] = useState(require('../../Images/icon-success.gif'));
     const [loggeInStatusButtonIcon, setLoggeInStatusButtonIcon] = useState('');
     const [loggeInStatusButtonTitle, setLoggeInStatusButtonTitle] = useState('');
 
@@ -135,7 +136,7 @@ export default function SignUp(props) {
         setIsLoggedInSuccessful(false);
         setIsLoggedInSuccessFailure(false);
         setLoggeInStatusMsg('');
-        setLoggeInStatusIcon(require('../Images/icon-success.gif'));
+        setLoggeInStatusIcon(require('../../Images/icon-success.gif'));
         setLoggeInStatusButtonIcon('');
         setLoggeInStatusButtonTitle('');
 
@@ -318,7 +319,7 @@ export default function SignUp(props) {
                 setIsLoggingIn(false);
                 setIsLoggedInSuccessFailure(false);
                 setShowOTPOvelay(true);
-            }, 1500);
+            }, 1000);
             return () => clearTimeout(timer);
         }catch(error){
             ToastAndroid.show(error.message, ToastAndroid.LONG, ToastAndroid.CENTER);
@@ -339,6 +340,7 @@ export default function SignUp(props) {
             const credential = PhoneAuthProvider.credential(otpCredentials,entertedOtp); 
             signInWithCredential(auth,credential)
             .then(()=>{
+                ToastAndroid.show("OTP verified...", ToastAndroid.SHORT, ToastAndroid.CENTER);
                 storeUserDetailsInFirebase();
             })
             .catch((error)=>{
@@ -354,7 +356,7 @@ export default function SignUp(props) {
             setIsLoggingIn(false);
             setIsLoggedInSuccessFailure(true);
             setLoggeInStatusMsg("Error:"+ error.message+". Please try again later.");
-            setLoggeInStatusIcon(require('../Images/icon-error.gif'));
+            setLoggeInStatusIcon(require('../../Images/icon-error.gif'));
             setLoggeInStatusButtonIcon('refresh-cw');
             setLoggeInStatusButtonTitle('Retry');
             console.log(error.message)
@@ -381,7 +383,7 @@ export default function SignUp(props) {
                 setIsLoggingIn(false);
                 setIsLoggedInSuccessFailure(true);
                 setLoggeInStatusMsg('Your account has been created successfully.');
-                setLoggeInStatusIcon(require('../Images/icon-success.gif'));
+                setLoggeInStatusIcon(require('../../Images/icon-success.gif'));
                 setLoggeInStatusButtonIcon('home');
                 setLoggeInStatusButtonTitle('Home');
             } catch (e) {
@@ -390,7 +392,7 @@ export default function SignUp(props) {
                 setIsLoggingIn(false);
                 setIsLoggedInSuccessFailure(true);
                 setLoggeInStatusMsg("Error: Unable to save your information. Please try again later.");
-                setLoggeInStatusIcon(require('../Images/icon-error.gif'));
+                setLoggeInStatusIcon(require('../../Images/icon-error.gif'));
                 setLoggeInStatusButtonIcon('refresh-cw');
                 setLoggeInStatusButtonTitle('Retry');
             }
@@ -412,11 +414,11 @@ export default function SignUp(props) {
                 <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
                     <View>
                         <View style={Styles.contaier}>
-                            <FirebaseRecaptchaVerifierModal
+                            {/* <FirebaseRecaptchaVerifierModal
                                 ref={recaptchaVerifier}
                                 firebaseConfig={app.options}
                                 attemptInvisibleVerification='true'
-                            />
+                            /> */}
                             <Input placeholder="Enter Full Name..."
                                 style={Styles.input}
                                 inputContainerStyle={Styles.inputContainer}

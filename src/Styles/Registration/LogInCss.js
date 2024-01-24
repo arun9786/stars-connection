@@ -11,21 +11,19 @@ export const Styles=StyleSheet.create({
     },
     signupContainer:{
         marginTop:5,
-        backgroundColor:'#babab8',
+        backgroundColor:'#e8e7e6',
         paddingLeft:5,
         paddingRight:5,
         paddingBottom:5,
         borderTopRightRadius:10,
         borderTopLeftRadius:10,
     },
-    innerContainer:{
+    signinContainer:{
         backgroundColor:'white',
         paddingTop:5,
         paddingLeft:5,
         paddingRight:5,
         paddingBottom:15,
-        borderBottomLeftRadius:10,
-        borderBottomRightRadius:10,
     },
     inputContainer:{
         borderWidth:2,
@@ -75,6 +73,15 @@ export const Styles=StyleSheet.create({
         marginLeft:8,
         marginRight:8,
     },
+    forgotPasswordContainer:{
+        backgroundColor:'#e8e7e6',
+        paddingLeft:5,
+        paddingRight:5,
+        paddingBottom:5,
+        borderBottomRightRadius:10,
+        borderBottomLeftRadius:10,
+    },
+
     overlayStyle:{
         width: '80%',
         padding:20,

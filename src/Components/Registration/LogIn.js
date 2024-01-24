@@ -5,14 +5,16 @@ import { useNavigation } from '@react-navigation/native';
 import { RadioGroup } from "react-native-radio-buttons-group";
 
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth'
-import { firestore } from "../config/firebase";
+import { firestore } from "../../config/firebase";
 import { collection, doc, getDoc, getDocs } from 'firebase/firestore'
 
-import { Styles } from "../Styles/LogInCss";
-import { mobileRegex, passwordRegex } from '../Others/Regex'
-import basicsStrings from '../Strings/basics.json'
-import { checkInternetConnection } from "../Others/InternetConnectionStatus";
-import { passwordEncoder } from "../Security/Encoder";
+import { Styles } from "../../Styles/Registration/LogInCss";
+import { mobileRegex, passwordRegex } from '../../Others/Regex'
+import basicsStrings from '../../Strings/basics.json'
+import { checkInternetConnection } from "../../Others/InternetConnectionStatus";
+import { passwordEncoder } from "../../Security/Encoder";
+import { useDispatch, useSelector } from "react-redux";
+import { PersonalDetailsFun } from "../../Redux/Slice/UserProfileSlice";
 
 
 export default function LogIn(props) {
@@ -25,30 +27,42 @@ export default function LogIn(props) {
     const [isLoggedInSuccessful, setIsLoggedInSuccessful] = useState(false);
     const [isLoggedInSuccessFailure, setIsLoggedInSuccessFailure] = useState(false);
     const [loggeInStatusMsg, setLoggeInStatusMsg] = useState('');
-    const [loggeInStatusIcon, setLoggeInStatusIcon] = useState(require('../Images/icon-success.gif'));
+    const [loggeInStatusIcon, setLoggeInStatusIcon] = useState(require('../../Images/icon-success.gif'));
     const [loggeInStatusButtonIcon, setLoggeInStatusButtonIcon] = useState('');
     const [loggeInStatusButtonTitle, setLoggeInStatusButtonTitle] = useState('');
 
     const [userPhone, setUserPhone] = useState('');
     const [userPassword, setUserPassword] = useState('');
 
-    const radioButtons = useMemo(() => ([
+    const radioButtonsSignIn = useMemo(() => ([
         {
             id: "1",
             label: "Sign In",
             value: 'Sign In',
-            labelStyle: { fontSize: 20 },
+            labelStyle: { fontSize: 20, marginBottom:10, },
+            
             color: '#aba30a',
         }
     ]
     ), []);
 
-    const radioButtons1 = useMemo(() => ([
+    const radioButtonsSignUp = useMemo(() => ([
         {
             id: "1",
-            label: "Create Account",
-            value: 'Create Account',
-            labelStyle: { fontSize: 20 },
+            label: "Create New Account",
+            value: 'Create New Account',
+            labelStyle: { fontSize: 18 },
+            color: '#aba30a',
+        }
+    ]
+    ), []);
+
+    const radioButtonsForgotPassword = useMemo(() => ([
+        {
+            id: "1",
+            label: "Forgot/Reset Password",
+            value: 'Forgot/Reset Password',
+            labelStyle: { fontSize: 18 },
             color: '#aba30a',
         }
     ]
@@ -56,10 +70,9 @@ export default function LogIn(props) {
 
     const auth = getAuth();
     const navigation = useNavigation();
-
-    const recaptchaVerifier = useRef(null);
-
-    //   const attemptInvisibleVerification = false;
+    const dispatch=useDispatch();
+    const userPersonalDataRedux = useSelector((state) => state.UserProfileReducer.personal);
+    console.log(userPersonalDataRedux);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -83,7 +96,7 @@ export default function LogIn(props) {
         setIsLoggedInSuccessful(false);
         setIsLoggedInSuccessFailure(false);
         setLoggeInStatusMsg('');
-        setLoggeInStatusIcon(require('../Images/icon-success.gif'));
+        setLoggeInStatusIcon(require('../../Images/icon-success.gif'));
         setLoggeInStatusButtonIcon('');
         setLoggeInStatusButtonTitle('');
         setUserPhone('');
@@ -100,6 +113,10 @@ export default function LogIn(props) {
 
     const openSignupPage = () => {
         navigation.navigate('SignUp');
+    }
+
+    const openForgotPasswordPage= ()=>{
+        navigation.navigate('Forgot Password');
     }
 
     const LogInWithEmailFun = async () => {
@@ -121,7 +138,7 @@ export default function LogIn(props) {
                 setShowOverlay(true);
                 setIsLoggingIn(true);
                 setIsLoggedInSuccessFailure(false);
-                getDoc(doc(firestore, "Users", "6379185147", "Personal Details", "Data"))
+                getDoc(doc(firestore, "Users", userPhone, "Personal Details", "Data"))
                     .then((result) => {
                         console.log(result.data());
                         if (result.data()) {
@@ -131,16 +148,20 @@ export default function LogIn(props) {
                                 setIsLoggingIn(false);
                                 setIsLoggedInSuccessFailure(true);
                                 setLoggeInStatusMsg('Sign-in successfull...');
-                                setLoggeInStatusIcon(require('../Images/icon-success.gif'));
+                                setLoggeInStatusIcon(require('../../Images/icon-success.gif'));
                                 setLoggeInStatusButtonIcon('home');
                                 setLoggeInStatusButtonTitle('Home');
-                                console.log("true")
+                                dispatch(PersonalDetailsFun(result.data()));
+                                const timer = setTimeout(() => {
+                                    loginStatusFun();
+                                }, 5000);
+                                return () => clearTimeout(timer);
                             } else {
                                 setIsLoggedInSuccessful(false);
                                 setIsLoggingIn(false);
                                 setIsLoggedInSuccessFailure(true);
                                 setLoggeInStatusMsg("Invalid Password...");
-                                setLoggeInStatusIcon(require('../Images/icon-error.gif'));
+                                setLoggeInStatusIcon(require('../../Images/icon-error.gif'));
                                 setLoggeInStatusButtonIcon('refresh-cw');
                                 setLoggeInStatusButtonTitle('Retry');
                                 console.log("Invalid User")
@@ -166,12 +187,12 @@ export default function LogIn(props) {
 
     const loginStatusFun = () => {
         setShowOverlay(false);
-        if (isLoggedInSuccessful) {
-            navigation.reset({
-                index: 0,
-                routes: [{ name: 'Index' }],
-            });
-        }
+        // if (isLoggedInSuccessful) {
+        //     navigation.reset({
+        //         index: 0,
+        //         routes: [{ name: 'Index' }],
+        //     });
+        // }
     }
 
     return (
@@ -183,15 +204,15 @@ export default function LogIn(props) {
                     </Text>
                     <View style={Styles.signupContainer}>
                         <RadioGroup
-                            radioButtons={radioButtons1}
+                            radioButtons={radioButtonsSignUp}
                             selectedId="2"
                             onPress={() => openSignupPage()}
                             containerStyle={{ alignItems: 'flex-start' }}
                         />
                     </View>
-                    <View style={Styles.innerContainer}>
+                    <View style={Styles.signinContainer}>
                         <RadioGroup
-                            radioButtons={radioButtons}
+                            radioButtons={radioButtonsSignIn}
                             selectedId="1"
                             containerStyle={{ alignItems: 'flex-start' }}
                         />
@@ -234,6 +255,14 @@ export default function LogIn(props) {
                         <Text style={Styles.privacyPolicy}>
                             By continuing, you agree to {basicsStrings.appName}'s conditions of Use and Privacy notice.
                         </Text>
+                    </View>
+                    <View style={Styles.forgotPasswordContainer}>
+                        <RadioGroup
+                            radioButtons={radioButtonsForgotPassword}
+                            selectedId="2"
+                            onPress={() => openForgotPasswordPage()}
+                            containerStyle={{ alignItems: 'flex-start' }}
+                        />
                     </View>
 
                 </View>

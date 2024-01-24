@@ -2,8 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Keyboard, ScrollView, View } from 'react-native'
 import { Image, Tab, TabView, Text } from "react-native-elements";
 import { Appbar, Menu, Divider, Provider } from 'react-native-paper';
-import LogIn from "./LogIn";
-import SignUp from "./SignUp";
+import LogIn from "./Registration/LogIn";
+import SignUp from "./Registration/SignUp";
 
 
 import { Styles } from "../Styles/LogInSignUpCss";

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Keyboard, TouchableWithoutFeedback, View } from "react-native";
 import { Button, Icon, Input, Text } from "react-native-elements";
-import { Styles } from "../Styles/OtpVerificationCss";
+import { Styles } from "../../../Styles/Registration/OtpVerificationCss";
 
 export default function OtpVerification(props) {
 
