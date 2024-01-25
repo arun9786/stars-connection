@@ -26,7 +26,7 @@ export default function Index() {
             case 'Search':
               iconName = 'search';
               break;
-            case 'Add':
+            case 'Invite':
               iconName = 'plus-circle';
               break;
             case 'Network':
@@ -58,7 +58,7 @@ export default function Index() {
       })}>
         <Tab.Screen name="Home" component={Home} options={{ headerShown: false }} />
         <Tab.Screen name="Search" component={Home} options={{ headerShown: false }} />
-        <Tab.Screen name="Add" component={Home} options={{ headerShown: false }} />
+        <Tab.Screen name="Invite" component={Home} options={{ headerShown: false }} />
         <Tab.Screen name="Network" component={Home} options={{ headerShown: false }} />
         <Tab.Screen name="Profile" component={Profile} options={{ headerShown: false }} />
       </Tab.Navigator>

@@ -406,7 +406,6 @@ const Address = forwardRef((props, ref) => {
                 <ActivityIndicator size="large" style={Styles.overlayActivityIndicator}
                   color='#2e4dbf' />
               </View>
-
             </Overlay>
           </View>
         }

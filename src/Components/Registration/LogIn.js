@@ -72,7 +72,6 @@ export default function LogIn(props) {
     const navigation = useNavigation();
     const dispatch=useDispatch();
     const userPersonalDataRedux = useSelector((state) => state.UserProfileReducer.personal);
-    console.log(userPersonalDataRedux);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {

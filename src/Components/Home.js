@@ -13,6 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 import { PersonalDetailsFun } from '../Redux/Slice/UserProfileSlice';
 import { CompaniesFun } from '../Redux/Slice/CompaniesSlice';
 import { Styles } from '../Styles/HomeCss';
+import basicStrings from '../Strings/basics.json'
 
 export default function Home() {
 
@@ -87,7 +88,7 @@ export default function Home() {
     return (
         <Provider>
             <Appbar.Header style={Styles.AppbarHeader}>
-                <Appbar.Content title="STARS CONNECT" color='white' />
+                <Appbar.Content title={basicStrings.appName} color='white' />
                 <View style={Styles.headerNotificationContainer}>
                     <Icon name='bell' type='feather' color='white' onPress={() => console.log("hello")} />
                     <Badge

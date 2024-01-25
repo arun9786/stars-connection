@@ -48,6 +48,46 @@ export const Styles=StyleSheet.create({
         marginBottom:10,
         textAlign:'justify',
     },
+    postText:{
+        fontWeight:'bold',
+        color:'#2a49a3',
+        textAlign:'right',
+        marginRight:10,
+        fontSize:16,   
+    },
+    selectPost:{
+        marginLeft:10,
+        marginRight:10,
+        marginBottom:20,
+        fontSize:20,
+    },
+    selectPostInput:{
+        padding:14,
+        borderWidth:2,
+        borderColor:'#2a49a3',
+        borderBottomWidth:2,
+        borderRadius:8,
+        flexDirection:'row',
+        justifyContent:'space-between'
+    },
+    selectPostOption:{
+        fontSize:18,
+    },
+    pincodeOverlayStyle:{
+        padding:10,
+        width:'100%',
+    },
+    pincodeOverlayTitle:{
+        fontSize:20
+    },
+    pincodeOverlayMsg:{
+        marginTop:3,
+        marginBottom:5,
+        fontSize:17,
+    },
+    overlayActivityIndicator:{
+        padding:10,
+    },
     button:{
         margin:8,
         backgroundColor:'#274575',
@@ -58,6 +98,7 @@ export const Styles=StyleSheet.create({
         color:'white',
         marginLeft:6,
     },
+
     bottomSheetTextTitleContainer:{
         marginLeft:10,
         marginRight:10,
@@ -106,6 +147,7 @@ export const Styles=StyleSheet.create({
         color:'white',
         textAlign:'center'
     },
+
     overlayStyle:{
         width: '80%',
         padding:20,
