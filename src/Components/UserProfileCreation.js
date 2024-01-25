@@ -87,7 +87,7 @@ export default function UserProfileCreation() {
     return (
         <Provider>
             <Appbar.Header>
-                <Appbar.Content title="" color='white' />
+                <Appbar.Content title="hello" color='red' />
                 <View style={{ marginRight: 10, }}>
                     <Icon name='log-out' type='feather' color='black' onPress={logOutFun} />
                 </View>

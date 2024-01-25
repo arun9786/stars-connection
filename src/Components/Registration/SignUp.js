@@ -106,7 +106,7 @@ export default function SignUp(props) {
 
     const [isVisibleBottomSheet, setIsVisibleBottomSheet] = useState(false);
     const [isToastVisible,setIsToastVisible]=useState(false);
-    const [toastContent,setToastContent]=useState(false);
+    const [toastContent,setToastContent]=useState('');
 
     const emailRegex = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/;
     const mobileRegex = /^[6-9]\d{9}$/;
@@ -295,7 +295,6 @@ export default function SignUp(props) {
     }, [userPincode]);
 
     useEffect(() => {
-        console.log(userPost);
         if (userPost !== 'Please Enter Pincode' && userPost !== 'Please Select PostOffice') {
             setUserPostSuccessIcon('check');
             setUserPostSuccessIconColor('#238732');
@@ -374,19 +373,21 @@ export default function SignUp(props) {
                     setUserPost("Please Select PostOffice")
                     setOtherAddressPlaceholderMsg('Please Select PostOffice')
                 } else {
+                    setUserPincode('');
                     setUserPincodeSuccessIcon('x');
                     setUserPincodeSuccessIconColor('#8c0a1b');
-                    ToastAndroid.show("Invalid Pincode", ToastAndroid.LONG);
+                    Toast("Invalid Pincode",undefined,3500)
                     setUserPincodeVerified(false);
                     setPincodeVerifyOverlay(false);
                 }
                 console.log("response", response);
             })
             .catch((error) => {
+                setUserPincode('');
                 setUserPincodeSuccessIcon('x');
                 setUserPincodeSuccessIconColor('#8c0a1b');
                 setPincodeVerifyOverlay(false);
-                ToastAndroid.show("Try Again: " + error.message, ToastAndroid.LONG);
+                Toast("Try Again: " + error.message,true,4000);
                 setUserPincodeVerified(false);
                 console.log("error", JSON.stringify(error.message));
             })
@@ -414,9 +415,10 @@ export default function SignUp(props) {
         }
     }
 
-    const showCustomToast=(message,errorStatus=true,timeout=2500)=>{
-        let content={"visible":true,"message":message,"errorStatus":errorStatus, "timeout":timeout};
+    const Toast=(message,errorStatus=true,timeout=2000,position='bottom')=>{
+        let content={"visible":true,"message":message,"errorStatus":errorStatus, "timeout":timeout,"position":position};
         setToastContent(content);
+        console.log(content);
         setIsToastVisible(true);
         setTimeout(()=>{
             setIsToastVisible(false);
@@ -426,22 +428,21 @@ export default function SignUp(props) {
     const handleSubmit = async () => {
         setUserModifiedEmail(userEmail.replace(/\./g, "-"))
         if (userFirstName.length < 4) {
-            showCustomToast("Enter valid first name. this is good but wee need to show after sometime. please use proper one");
-            // ToastAndroid.show("Enter valid first name", ToastAndroid.SHORT, ToastAndroid.CENTER);
+            Toast("Enter Valid First Name",undefined,undefined,'top');
         } else if (userLastName.length < 1) {
-            ToastAndroid.show("Enter valid last name", ToastAndroid.SHORT, ToastAndroid.CENTER);
+            Toast("Enter Valid Last Name");
         } else if (!mobileRegex.test(userPhone)) {
-            ToastAndroid.show("Enter valid mobile number", ToastAndroid.SHORT, ToastAndroid.CENTER);
+            Toast("Enter Valid Mobile Number");
         } else if (!emailRegex.test(userEmail)) {
-            ToastAndroid.show("Enter valid email id", ToastAndroid.SHORT, ToastAndroid.CENTER);
+            Toast("Enter Valid Email ID");
         } else if (!passwordRegex.test(userPassword)) {
-            ToastAndroid.show("Enter valid Password as per requirements", ToastAndroid.SHORT, ToastAndroid.CENTER);
+            Toast("Enter Valid Password As Per Requirements");
         } else if (!passwordRegex.test(userConfirmPassword) || userPassword !== userConfirmPassword) {
-            ToastAndroid.show("Both Password should be same", ToastAndroid.SHORT, ToastAndroid.CENTER);
+            Toast("Both Password Should Be Same");
         } else if (userPlace.length < 4) {
-            ToastAndroid.show("Enter Your Place name", ToastAndroid.SHORT, ToastAndroid.CENTER);
+            Toast("Enter Your Place Name");
         } else if (!userPincodeVerified) {
-            ToastAndroid.show("Please Verify Your Pincode", ToastAndroid.SHORT, ToastAndroid.CENTER);
+            Toast("Please Verify Your Pincode");
         } else {
             const len = userPassword.length;
             const firstTwoChars = userPassword.substring(0, 1);
@@ -467,7 +468,7 @@ export default function SignUp(props) {
             setOverlayStatusMsg('Sending OTP...');
             console.log(verificationId);
             const timer = setTimeout(() => {
-                ToastAndroid.show("OTP sent to your mobile", ToastAndroid.SHORT, ToastAndroid.CENTER);
+                Toast("OTP sent to your mobile",false);
                 setOtpCredentials(verificationId);
                 setShowOverlay(false);
                 setIsLoggingIn(false);
@@ -476,7 +477,7 @@ export default function SignUp(props) {
             }, 1000);
             return () => clearTimeout(timer);
         } catch (error) {
-            ToastAndroid.show(error.message, ToastAndroid.LONG, ToastAndroid.CENTER);
+            Toast(error.message);
             setShowOverlay(false);
             setIsLoggingIn(false);
             setIsLoggedInSuccessFailure(false);
@@ -494,15 +495,15 @@ export default function SignUp(props) {
             const credential = PhoneAuthProvider.credential(otpCredentials, entertedOtp);
             signInWithCredential(auth, credential)
                 .then(() => {
-                    ToastAndroid.show("OTP verified...", ToastAndroid.SHORT, ToastAndroid.CENTER);
+                    Toast("OTP verified...",true);
                     storeUserDetailsInFirebase();
                 })
                 .catch((error) => {
                     setShowOTPOvelay(true);
                     setShowOverlay(false);
                     setIsLoggingIn(false);
-                    console.log(error.message)
-                    ToastAndroid.show(error.message, ToastAndroid.SHORT, ToastAndroid.CENTER);
+                    console.log(error.message);
+                    Toast(error.message);
                 })
         } catch (error) {
             setShowOverlay(false);
@@ -514,7 +515,7 @@ export default function SignUp(props) {
             setLoggeInStatusButtonIcon('refresh-cw');
             setLoggeInStatusButtonTitle('Retry');
             console.log(error.message)
-            ToastAndroid.show(error.message, ToastAndroid.SHORT, ToastAndroid.CENTER);
+            Toast(error.message);
         }
     }
 
@@ -574,6 +575,8 @@ export default function SignUp(props) {
     return (
         <View>
            {isToastVisible && <CustomToast content={toastContent} handleToastVisible={()=>setIsToastVisible(false)}/> }
+           
+            
             <ScrollView>
                 <View>
                     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>

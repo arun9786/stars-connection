@@ -5,7 +5,6 @@ export const Styles=StyleSheet.create({
         flex:1,
         margin:10,
         marginBottom:40,
-
     },
     inputContainer:{
         borderWidth:2,
