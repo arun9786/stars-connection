@@ -4,6 +4,7 @@ export const Styles=StyleSheet.create({
     contaier:{
         flex:1,
         margin:10,
+        marginBottom:40,
 
     },
     inputContainer:{
@@ -88,11 +89,22 @@ export const Styles=StyleSheet.create({
     overlayActivityIndicator:{
         padding:10,
     },
+    buttonViewContainer:{
+        position: 'absolute', 
+        bottom: 0, 
+        width:'100%',
+    },
+    buttonContainer:{
+        marginLeft:10, 
+        marginRight:10,
+    },
     button:{
         margin:8,
-        backgroundColor:'#274575',
+        backgroundColor:'#29078f',
         borderRadius:8,
-        padding:12
+        padding:12,
+        borderWidth:1,
+        borderColor:'#2b025e'
     },
     buttonIcon:{
         color:'white',

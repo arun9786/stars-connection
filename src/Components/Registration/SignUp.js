@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Keyboard, KeyboardAvoidingView, Platform, SafeAreaView, ScrollView, ToastAndroid, TouchableWithoutFeedback, View } from "react-native";
-import { BottomSheet, Button, ButtonGroup, FAB, Icon, Image, Input, ListItem, Overlay, Text } from "react-native-elements";
+import { ActivityIndicator, Keyboard, ScrollView, ToastAndroid, TouchableWithoutFeedback, View } from "react-native";
+import { BottomSheet, Button, ButtonGroup, Icon, Image, Input, ListItem, Overlay, Text } from "react-native-elements";
 import { useNavigation } from '@react-navigation/native';
 import ModalSelector from "react-native-modal-selector";
 import OTPTextView from "react-native-otp-textinput";
@@ -16,6 +16,8 @@ import { FirebaseRecaptchaVerifierModal } from "expo-firebase-recaptcha";
 import { Styles } from "../../Styles/Registration/SignUpCss";
 import { passwordEncoder } from "../../Security/Encoder";
 import { passwordRegex } from '../../Others/Regex'
+import { FAB } from "react-native-paper";
+import CustomToast from "../Features/CustomToast";
 
 export default function SignUp(props) {
 
@@ -103,6 +105,8 @@ export default function SignUp(props) {
 
 
     const [isVisibleBottomSheet, setIsVisibleBottomSheet] = useState(false);
+    const [isToastVisible,setIsToastVisible]=useState(false);
+    const [toastContent,setToastContent]=useState(false);
 
     const emailRegex = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/;
     const mobileRegex = /^[6-9]\d{9}$/;
@@ -382,7 +386,7 @@ export default function SignUp(props) {
                 setUserPincodeSuccessIcon('x');
                 setUserPincodeSuccessIconColor('#8c0a1b');
                 setPincodeVerifyOverlay(false);
-                ToastAndroid.show(error.message, ToastAndroid.LONG);
+                ToastAndroid.show("Try Again: " + error.message, ToastAndroid.LONG);
                 setUserPincodeVerified(false);
                 console.log("error", JSON.stringify(error.message));
             })
@@ -410,11 +414,21 @@ export default function SignUp(props) {
         }
     }
 
+    const showCustomToast=(message,errorStatus=true,timeout=2500)=>{
+        let content={"visible":true,"message":message,"errorStatus":errorStatus, "timeout":timeout};
+        setToastContent(content);
+        setIsToastVisible(true);
+        setTimeout(()=>{
+            setIsToastVisible(false);
+        },timeout);
+    }
+
     const handleSubmit = async () => {
         setUserModifiedEmail(userEmail.replace(/\./g, "-"))
         if (userFirstName.length < 4) {
-            ToastAndroid.show("Enter valid first name", ToastAndroid.SHORT, ToastAndroid.CENTER);
-        } if (userLastName.length < 1) {
+            showCustomToast("Enter valid first name. this is good but wee need to show after sometime. please use proper one");
+            // ToastAndroid.show("Enter valid first name", ToastAndroid.SHORT, ToastAndroid.CENTER);
+        } else if (userLastName.length < 1) {
             ToastAndroid.show("Enter valid last name", ToastAndroid.SHORT, ToastAndroid.CENTER);
         } else if (!mobileRegex.test(userPhone)) {
             ToastAndroid.show("Enter valid mobile number", ToastAndroid.SHORT, ToastAndroid.CENTER);
@@ -559,16 +573,18 @@ export default function SignUp(props) {
 
     return (
         <View>
+           {isToastVisible && <CustomToast content={toastContent} handleToastVisible={()=>setIsToastVisible(false)}/> }
             <ScrollView>
                 <View>
                     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
                         <View>
                             <View style={Styles.contaier}>
-                                <FirebaseRecaptchaVerifierModal
+                                {/* <FirebaseRecaptchaVerifierModal
                                     ref={recaptchaVerifier}
                                     firebaseConfig={app.options}
                                     attemptInvisibleVerification='true'
-                                />
+                                /> */}
+                               
                                 <Input placeholder="Enter First Name..."
                                     style={Styles.input}
                                     inputContainerStyle={Styles.inputContainer}
@@ -741,13 +757,7 @@ export default function SignUp(props) {
                                     disabled={true}
                                     rightIcon={<Icon name={userCountrySuccessIcon} type="feather" color={userCountrySuccessIconColor} />}
                                 />
-                                <Button title='REGISTER'
-                                    icon={<Icon name='arrow-right' type='feather' color='white' style={Styles.buttonIcon} />}
-                                    iconPosition='right'
-                                    loading={false} buttonStyle={Styles.button}
-                                    onPress={handleSubmit}
-                                // onPress={StoreCompanyinFirestore} 
-                                />
+
 
 
                             </View>
@@ -837,11 +847,20 @@ export default function SignUp(props) {
                     </Overlay>
                 </View>
             </ScrollView>
-            <FAB placement='right'
-        buttonStyle={{ backgroundColor: '#211c9e' }}
-        icon={<Icon name='arrow-right' type='feather' color='white' />}
+            <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
         
-      />
+            <View style={Styles.buttonViewContainer} >
+                <Button title='REGISTER'
+                    icon={<Icon name='arrow-right' type='feather' color='white' style={Styles.buttonIcon} />}
+                    iconPosition='right'
+                    loading={false} buttonStyle={Styles.button}
+                    onPress={handleSubmit}
+                    containerStyle={Styles.buttonContainer}
+                />
+                
+            </View>
+            </TouchableWithoutFeedback>
+
         </View>
 
 
