@@ -1,0 +1,63 @@
+import { StyleSheet } from "react-native";
+
+export const Styles=StyleSheet.create({
+    otpOverlayStyle:{
+        padding:0,
+        width:'86%',
+        borderRadius:7,
+    },
+    otpOverlayContainerStyle:{
+        paddingLeft:12,
+        paddingRight:12,
+        paddingBottom:12,
+    },
+    cancelButtonText:{
+        alignSelf:'flex-end',
+        marginRight:10,
+        fontSize:25,
+    },
+    otpOverlayTitle:{
+        fontWeight:'bold',
+        textAlign:'center',
+        fontSize:17,
+    },
+    otpOverlayTitleHint:{
+        marginTop:7,
+        marginBottom:7,
+        textAlign:'center',
+        color:'green',
+        fontSize:15,
+    },
+    otpInputContainerStyle:{
+        marginTop:10,
+        marginBottom:10,
+        backgroundColor:'#f5f6fa',
+        padding:10,
+    },
+    otpContainerStyle:{
+    },
+    otpTextInputStyle:{
+        width:'12%',
+        height:'auto',
+        borderWidth:1,
+        borderBottomWidth:1,
+        borderColor:'#670d94',
+    },
+    otpContainerVerifyButton:{
+        marginTop:9,
+        backgroundColor:'#670d94',
+        borderRadius:20,
+    },
+    otpOverlayResendOTPHint:{
+        textAlign:'center',
+    },
+    otpOverlayResendOTP:{
+        color:'#670d94',
+        fontWeight:'bold',
+        textAlign:'center',
+        marginTop:5,
+        fontSize:15,
+        textDecorationLine:'underline',
+    }
+}
+)

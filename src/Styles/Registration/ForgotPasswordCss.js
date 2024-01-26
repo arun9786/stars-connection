@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import appColors from '../../Others/appColors.json'
 
 export const Styles=StyleSheet.create({
     container:{
@@ -7,7 +8,7 @@ export const Styles=StyleSheet.create({
     },
     inputContainer:{
         borderWidth:2,
-        borderColor:'#2a49a3',
+        borderColor:appColors.basicRed,
         borderBottomWidth:2,
         borderRadius:8,
         paddingLeft:7,
@@ -18,7 +19,7 @@ export const Styles=StyleSheet.create({
         paddingRight:3,
     },
     lableStyle:{
-        color:'#2a49a3',
+        color:appColors.basicRed,
         textAlign:'right',
     },
 
@@ -30,7 +31,7 @@ export const Styles=StyleSheet.create({
     },
     button:{
         margin:8,
-        backgroundColor:'#274575',
+        backgroundColor:appColors.basicRed,
         borderRadius:8,
         padding:12
     },
@@ -38,96 +39,4 @@ export const Styles=StyleSheet.create({
         color:'white',
         marginLeft:6,
     },
-
-    overlayStyle:{
-        width: '80%',
-        padding:20,
-        borderRadius:10,
-    },
-    overlayPleaseWait:{
-        fontSize:18,
-    },
-    overlayVerifingCredentials:{
-        marginTop:5,
-        fontSize:16,
-    },
-    overlayActivityIndicator:{
-        marginTop:10,
-    },
-    overlayViewLoginSuccess:{
-        width:'100%',
-        alignItems:'center'
-    },
-    overlaySignInSuccess:{
-        fontSize:17,
-    },
-    overlaySuccessIcon:{
-        width:50, 
-        height:50, 
-        alignContent:'center',
-        marginTop:10,
-        marginBottom:10,
-    },
-    overlaySuccessButtonIcon:{
-        marginRight:10
-    },
-
-    otpOverlayStyle:{
-        padding:0,
-        width:'86%',
-        borderRadius:7,
-    },
-    otpOverlayContainerStyle:{
-        paddingLeft:12,
-        paddingRight:12,
-        paddingBottom:12,
-    },
-    cancelButtonText:{
-        alignSelf:'flex-end',
-        marginRight:10,
-        fontSize:25,
-    },
-    otpOverlayTitle:{
-        fontWeight:'bold',
-        textAlign:'center',
-        fontSize:17,
-    },
-    otpOverlayTitleHint:{
-        marginTop:7,
-        marginBottom:7,
-        textAlign:'center',
-        color:'green',
-        fontSize:15,
-    },
-    otpInputContainerStyle:{
-        marginTop:10,
-        marginBottom:10,
-        backgroundColor:'#f5f6fa',
-        padding:10,
-    },
-    otpContainerStyle:{
-    },
-    otpTextInputStyle:{
-        width:'12%',
-        height:'auto',
-        borderWidth:1,
-        borderBottomWidth:1,
-        borderColor:'#670d94',
-    },
-    otpContainerVerifyButton:{
-        marginTop:9,
-        backgroundColor:'#670d94',
-        borderRadius:20,
-    },
-    otpOverlayResendOTPHint:{
-        textAlign:'center',
-    },
-    otpOverlayResendOTP:{
-        color:'#670d94',
-        fontWeight:'bold',
-        textAlign:'center',
-        marginTop:5,
-        fontSize:15,
-        textDecorationLine:'underline',
-    }
 })

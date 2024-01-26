@@ -18,14 +18,34 @@ import { passwordEncoder } from "../../Security/Encoder";
 import { passwordRegex } from '../../Others/Regex'
 import { FAB } from "react-native-paper";
 
+import appColors from '../../Others/appColors.json'
+
 import CustomToast from "../Features/CustomToast";
 import OverlayLoader from "../Features/OverlayLoader";
+import OTPVerificationOverlay from "../Features/OTPVerificationOverlay";
 
 export default function SignUp(props) {
 
     const auth = getAuth();
     const navigation = useNavigation();
     const recaptchaVerifier = useRef(null);
+
+    const [userFirstName, setUserFirstName] = useState('');
+    const [userLastName, setUserLastName] = useState('');
+    const [userEmail, setUserEmail] = useState('');
+    const [userModifiedEmail, setUserModifiedEmail] = useState('');
+    const [userGender, setUserGender] = useState('');
+    const [userPhone, setUserPhone] = useState('');
+    const [userPassword, setUserPassword] = useState('');
+    const [userConfirmPassword, setUserConfirmPassword] = useState('');
+    const [userMaskedPassword, setUserMaskedPassword] = useState('');
+    const [userPlace, setUserPlace] = useState('');
+    const [userPincode, setUserPincode] = useState('');
+    const [userPost, setUserPost] = useState('');
+    const [userTaluk, setUserTaluk] = useState('');
+    const [userDistrict, setUserDistrict] = useState('');
+    const [userState, setUserState] = useState('');
+    const [userCountry, setUserCountry] = useState('');
 
     const [userFirstNameSuccessIcon, setUserFirstNameSuccessIcon] = useState('');
     const [userFirstNameSuccessIconColor, setUserFirstNameSuccessIconColor] = useState('');
@@ -45,40 +65,12 @@ export default function SignUp(props) {
     const [userPasswordConfirmSuccessIcon, setUserPasswordConfirmSuccessIcon] = useState('');
     const [userPasswordConfirmSuccessIconColor, setUserPasswordConfirmSuccessIconColor] = useState('');
     const [passwordHint, setPasswordHint] = useState(false);
-
-    const [showOvelayLoader, setShowOvelayLoader] = useState(false);
-    const [ovelayLoaderContent, setOvelayLoaderContent] = useState('');
-
-    const [showOTPOvelay, setShowOTPOvelay] = useState(false);
-    const [entertedOtp, setEntertedOtp] = useState('');
-    const [otpVerifyButtonDisabled, setOtpVerifyButtonDisabled] = useState(true);
-    const [otpCredentials, setOtpCredentials] = useState(true);
-
     const genderButtons = ['Male', 'Female'];
     const [genderSelectedIndex, setGenderSelectedIndex] = useState(0);
-
-    const [userFirstName, setUserFirstName] = useState('');
-    const [userLastName, setUserLastName] = useState('');
-    const [userEmail, setUserEmail] = useState('');
-    const [userModifiedEmail, setUserModifiedEmail] = useState('');
-    const [userGender, setUserGender] = useState('');
-    const [userPhone, setUserPhone] = useState('');
-    const [userPassword, setUserPassword] = useState('');
-    const [userConfirmPassword, setUserConfirmPassword] = useState('');
-    const [userMaskedPassword, setUserMaskedPassword] = useState('');
-    const [userPlace, setUserPlace] = useState('');
-    const [userPincode, setUserPincode] = useState('');
-    const [userPost, setUserPost] = useState('');
-    const [userTaluk, setUserTaluk] = useState('');
-    const [userDistrict, setUserDistrict] = useState('');
-    const [userState, setUserState] = useState('');
-    const [userCountry, setUserCountry] = useState('');
-
     const [userPincodeAddressArr, setUserPincodeAddressArr] = useState([]);
     const [userPincodePostOfficeArr, setUserPostOfficeArr] = useState([]);
     const [userPostDisabled, setUserPostDisabled] = useState(true);
     const [otherAddressPlaceholderMsg, setOtherAddressPlaceholderMsg] = useState('Please Enter Pincode')
-
     const [userPincodeSuccessIcon, setUserPincodeSuccessIcon] = useState('');
     const [userPincodeSuccessIconColor, setUserPincodeSuccessIconColor] = useState('#8c0a1b');
     const [userPlaceSuccessIcon, setUserPlaceSuccessIcon] = useState('');
@@ -93,15 +85,24 @@ export default function SignUp(props) {
     const [userStateSuccessIconColor, setUserStateSuccessIconColor] = useState('#8c0a1b');
     const [userCountrySuccessIcon, setUserCountrySuccessIcon] = useState('');
     const [userCountrySuccessIconColor, setUserCountrySuccessIconColor] = useState('#8c0a1b');
-
     const [postSelectTextColor, setPostSelectTextColor] = useState('#ccc');
     const [userPincodeVerified, setUserPincodeVerified] = useState(false);
 
-
-    const [isVisibleBottomSheet, setIsVisibleBottomSheet] = useState(false);
-
     const [isToastVisible, setIsToastVisible] = useState(false);
     const [toastContent, setToastContent] = useState('');
+
+    const [showOvelayLoader, setShowOvelayLoader] = useState(false);
+    const [ovelayLoaderContent, setOvelayLoaderContent] = useState('');
+
+    const [showOTPOvelay, setShowOTPOvelay] = useState(false);
+    const [entertedOtp, setEntertedOtp] = useState('');
+    const [otpVerifyButtonDisabled, setOtpVerifyButtonDisabled] = useState(true);
+    const [otpCredentials, setOtpCredentials] = useState(true);
+
+    
+    const [isVisibleBottomSheet, setIsVisibleBottomSheet] = useState(false);
+
+    
 
     const emailRegex = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/;
     const mobileRegex = /^[6-9]\d{9}$/;
@@ -437,9 +438,11 @@ export default function SignUp(props) {
             Toast("Both Password Should Be Same");
         } else if (userPlace.length < 4) {
             Toast("Enter Your Place Name");
-        } else if (!userPincodeVerified) {
-            Toast("Please Verify Your Pincode");
-        } else {
+        } 
+        // else if (!userPincodeVerified) {
+        //     Toast("Please Verify Your Pincode");
+        // } 
+        else {
             const len = userPassword.length;
             const firstTwoChars = userPassword.substring(0, 1);
             const lastTwoChars = userPassword.substring(len - 1);
@@ -469,13 +472,13 @@ export default function SignUp(props) {
             }, 1000);
             return () => clearTimeout(timer);
         } catch (error) {
-            Toast(error.message, undefined, 5000);
             setShowOvelayLoader(false);
+            Toast(error.message, undefined, 5000);
             console.log(error);
         }
     }
 
-    const signInWithPhoneNumberFun = async () => {
+    const verifyOTP = async () => {
         try {
             setShowOTPOvelay(false);
             setShowOvelayLoader(true);
@@ -542,8 +545,12 @@ export default function SignUp(props) {
 
     return (
         <View>
+
             {isToastVisible && <CustomToast content={toastContent} handleToastVisible={() => setIsToastVisible(false)} />}
             {showOvelayLoader && <OverlayLoader content={ovelayLoaderContent} />}
+            {showOTPOvelay && <OTPVerificationOverlay setShowOTPOvelay={()=>setShowOTPOvelay(false)} phone={userPhone}
+            otpVerifyButtonDisabled={otpVerifyButtonDisabled} setEntertedOtp={(text)=>setEntertedOtp(text)}
+            verifyOTP={()=>verifyOTP()} sendOTPtoUserMobile={()=>sendOTPtoUserMobile()}/>}
 
             <ScrollView>
                 <View>
@@ -561,7 +568,7 @@ export default function SignUp(props) {
                                     inputContainerStyle={Styles.inputContainer}
                                     label='First Name'
                                     labelStyle={Styles.lableStyle}
-                                    leftIcon={<Icon name="user" type='feather' color='#3156c4' />}
+                                    leftIcon={<Icon name="user" type='feather' color={appColors.basicRed} />}
                                     onChangeText={(text) => setUserFirstName(text)}
                                     value={userFirstName}
                                     rightIcon={<Icon name={userFirstNameSuccessIcon} type="feather" color={userFirstNameSuccessIconColor} />}
@@ -571,7 +578,7 @@ export default function SignUp(props) {
                                     inputContainerStyle={Styles.inputContainer}
                                     label='Last Name'
                                     labelStyle={Styles.lableStyle}
-                                    leftIcon={<Icon name="user" type='feather' color='#3156c4' />}
+                                    leftIcon={<Icon name="user" type='feather' color={appColors.basicRed} />}
                                     onChangeText={(text) => setUserLastName(text)}
                                     value={userLastName}
                                     rightIcon={<Icon name={userLastNameSuccessIcon} type="feather" color={userLastNameSuccessIconColor} />}
@@ -581,7 +588,7 @@ export default function SignUp(props) {
                                     inputContainerStyle={Styles.inputContainer}
                                     label='Phone'
                                     labelStyle={Styles.lableStyle}
-                                    leftIcon={<Icon name="phone" color='#3156c4' />}
+                                    leftIcon={<Icon name="phone" color={appColors.basicRed} />}
                                     keyboardType='numeric'
                                     onChangeText={(text) => setUserPhone(text)}
                                     value={userPhone}
@@ -600,7 +607,7 @@ export default function SignUp(props) {
                                     inputContainerStyle={Styles.inputContainer}
                                     label='Email'
                                     labelStyle={Styles.lableStyle}
-                                    leftIcon={<Icon name="email" color='#3156c4' />}
+                                    leftIcon={<Icon name="email" color={appColors.basicRed} />}
                                     keyboardType='email-address'
                                     onChangeText={(text) => setUserEmail(text.toLocaleLowerCase())}
                                     value={userEmail}
@@ -612,10 +619,10 @@ export default function SignUp(props) {
                                     inputContainerStyle={Styles.inputContainer}
                                     label='Create Password'
                                     labelStyle={Styles.lableStyle}
-                                    leftIcon={<Icon name='lock' color='#3156c4' />}
+                                    leftIcon={<Icon name='lock' color={appColors.basicRed} />}
                                     rightIcon={
                                         <View style={{ flexDirection: 'row' }}>
-                                            <Icon name={passwordEyeIcon} type="feather" color='#3156c4'
+                                            <Icon name={passwordEyeIcon} type="feather" color={appColors.basicRed}
                                                 onPress={() => setPasswordVisible(!passwordVisible)} />
                                             <Icon name={userPasswordSuccessIcon} type="feather" color={userPasswordSuccessIconColor} />
                                         </View>}
@@ -632,10 +639,10 @@ export default function SignUp(props) {
                                     inputContainerStyle={Styles.inputContainer}
                                     label='Confirm Password'
                                     labelStyle={Styles.lableStyle}
-                                    leftIcon={<Icon name='lock' color='#3156c4' />}
+                                    leftIcon={<Icon name='lock' color={appColors.basicRed} />}
                                     rightIcon={
                                         <View style={{ flexDirection: 'row' }}>
-                                            <Icon name={passwordConfirmEyeIcon} type="feather" color='#3156c4'
+                                            <Icon name={passwordConfirmEyeIcon} type="feather" color={appColors.basicRed}
                                                 onPress={() => setPasswordConfirmVisible(!passwordConfirmVisible)} />
                                             <Icon name={userPasswordConfirmSuccessIcon} type="feather" color={userPasswordConfirmSuccessIconColor} />
                                         </View>}
@@ -745,36 +752,6 @@ export default function SignUp(props) {
                         </View>
                     </TouchableWithoutFeedback>
 
-                    <Overlay isVisible={showOTPOvelay} overlayStyle={Styles.otpOverlayStyle}>
-                        <Text onPress={() => setShowOTPOvelay(false)} style={Styles.cancelButtonText}>x</Text>
-
-                        <View style={Styles.otpOverlayContainerStyle}>
-                            <Text style={Styles.otpOverlayTitle}>Mobile Verification</Text>
-                            <Text style={Styles.otpOverlayTitleHint}>OTP has sent to {userPhone}</Text>
-                            <View style={Styles.otpInputContainerStyle}>
-                                <OTPTextView
-                                    autoFocus
-                                    inputCount={6}
-                                    tintColor='#670d94'
-                                    containerStyle={Styles.otpContainerStyle}
-                                    textInputStyle={Styles.otpTextInputStyle}
-                                    handleTextChange={(text) => setEntertedOtp(text)} />
-
-                                <Button
-                                    disabled={otpVerifyButtonDisabled}
-                                    title='Verify OTP'
-                                    buttonStyle={Styles.otpContainerVerifyButton}
-                                    onPress={() => signInWithPhoneNumberFun()}
-                                />
-                            </View>
-                            <Text style={Styles.otpOverlayResendOTPHint} >Didn't you receive any code?</Text>
-                            <TouchableOpacity>
-                                <Text style={Styles.otpOverlayResendOTP} onPress={() => sendOTPtoUserMobile()}>Resend New Code</Text>
-                            </TouchableOpacity>
-                        </View>
-
-
-                    </Overlay>
                 </View>
             </ScrollView>
             <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>

@@ -5,8 +5,11 @@ import { Button, Icon, Image } from 'react-native-elements';
 
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import Home from './Home';
+import Home from './IndexScreens/Home';
+import Invite from './IndexScreens/Invite';
 import Profile from './Profile';
+
+import appColors from '../Others/appColors.json'
 
 const Tab = createBottomTabNavigator();
 
@@ -46,19 +49,22 @@ export default function Index() {
           }
 
         },
-        tabBarActiveTintColor: 'white',
-        tabBarInactiveTintColor: 'gray',
+        tabBarActiveTintColor: appColors.basicRed,
+        tabBarInactiveTintColor: '#363738',
         tabBarStyle: [{
           "display": "flex",
-          "backgroundColor": "#1f1d1d",
+          "backgroundColor": "white",
           paddingBottom: 3,
           paddingTop: 3,
         },
-        ]
+        ],
+        tabBarLabelStyle: {
+          fontWeight:'bold' // Adjust the font size as needed
+        },
       })}>
-        <Tab.Screen name="Home" component={Home} options={{ headerShown: false }} />
+        <Tab.Screen name="Home" component={Home} options={{ headerShown: false}} />
         <Tab.Screen name="Search" component={Home} options={{ headerShown: false }} />
-        <Tab.Screen name="Invite" component={Home} options={{ headerShown: false }} />
+        <Tab.Screen name="Invite" component={Invite} options={{ headerShown: false }} />
         <Tab.Screen name="Network" component={Home} options={{ headerShown: false }} />
         <Tab.Screen name="Profile" component={Profile} options={{ headerShown: false }} />
       </Tab.Navigator>

@@ -1,5 +1,5 @@
 import { StyleSheet } from "react-native";
-
+import appColors from '../../Others/appColors.json'
 export const Styles=StyleSheet.create({
     contaier:{
         flex:1,
@@ -27,7 +27,7 @@ export const Styles=StyleSheet.create({
     },
     inputContainer:{
         borderWidth:2,
-        borderColor:'#8a8703',
+        borderColor:appColors.basicRed,
         paddingLeft:5,
         paddingRight:5,
         borderBottomWidth:2,
@@ -46,7 +46,7 @@ export const Styles=StyleSheet.create({
     },
     button:{
         margin:8,
-        backgroundColor:'#a8a605',
+        backgroundColor:'#9D1D27',
         borderRadius:8,
         padding:12,
     },
@@ -81,37 +81,4 @@ export const Styles=StyleSheet.create({
         borderBottomRightRadius:10,
         borderBottomLeftRadius:10,
     },
-
-    overlayStyle:{
-        width: '80%',
-        padding:20,
-        borderRadius:10,
-    },
-    overlayPleaseWait:{
-        fontSize:18,
-    },
-    overlayVerifingCredentials:{
-        marginTop:5,
-        fontSize:16,
-    },
-    overlayActivityIndicator:{
-        marginTop:10,
-    },
-    overlayViewLoginSuccess:{
-        width:'100%',
-        alignItems:'center'
-    },
-    overlaySignInSuccess:{
-        fontSize:17,
-    },
-    overlaySuccessIcon:{
-        width:50, 
-        height:50, 
-        alignContent:'center',
-        marginTop:10,
-        marginBottom:10,
-    },
-    overlaySuccessButtonIcon:{
-        marginRight:10
-    }
 })

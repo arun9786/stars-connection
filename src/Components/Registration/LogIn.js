@@ -11,6 +11,7 @@ import {  doc, getDoc, } from 'firebase/firestore'
 import { Styles } from "../../Styles/Registration/LogInCss";
 import { mobileRegex, passwordRegex } from '../../Others/Regex'
 import basicsStrings from '../../Strings/basics.json'
+import appColors from '../../Others/appColors.json'
 import { checkInternetConnection } from "../../Others/InternetConnectionStatus";
 import { passwordEncoder } from "../../Security/Encoder";
 import { useDispatch, useSelector } from "react-redux";
@@ -23,7 +24,7 @@ import OverlayLoader from "../Features/OverlayLoader";
 
 export default function LogIn(props) {
     const [userPhone, setUserPhone] = useState('6379185147');
-    const [userPassword, setUserPassword] = useState('9786@RArun');
+    const [userPassword, setUserPassword] = useState('9786@RArunMP');
 
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [passwordEyeIcon, setPasswordEyeIcon] = useState('eye-off');
@@ -41,8 +42,7 @@ export default function LogIn(props) {
             label: "Sign In",
             value: 'Sign In',
             labelStyle: { fontSize: 20, marginBottom: 10, },
-
-            color: '#aba30a',
+            color: appColors.basicRed,
         }
     ]
     ), []);
@@ -53,7 +53,7 @@ export default function LogIn(props) {
             label: "Create New Account",
             value: 'Create New Account',
             labelStyle: { fontSize: 18 },
-            color: '#aba30a',
+            color: appColors.basicRed,
         }
     ]
     ), []);
@@ -61,10 +61,10 @@ export default function LogIn(props) {
     const radioButtonsForgotPassword = useMemo(() => ([
         {
             id: "1",
-            label: "Forgot/Reset Password",
-            value: 'Forgot/Reset Password',
+            label: "Reset Password",
+            value: 'Reset Password',
             labelStyle: { fontSize: 18 },
-            color: '#aba30a',
+            color: appColors.basicRed,
         }
     ]
     ), []);
@@ -130,7 +130,7 @@ export default function LogIn(props) {
                                 Toast('Sign-in successful...', false, undefined, 'top')
                                 const timer = setTimeout(() => {
                                     openIndexPage()
-                                }, 2000);
+                                }, 1500);
                                 return () => clearTimeout(timer);
                             } else {
                                 Toast("Invalid credentials provided. Please check your information and try again.", undefined, 5000);
@@ -199,16 +199,16 @@ export default function LogIn(props) {
                                     onChangeText={(text) => setUserPhone(text)}
                                     value={userPhone}
                                     containerStyle={{ margin: 0, padding: 0 }}
-                                    leftIcon={<Icon name='phone' color='#8a8703' style={Styles.inputIcons} />}
+                                    leftIcon={<Icon name='phone' color={appColors.basicRed} style={Styles.inputIcons} />}
                                 />
                                 <Input placeholder="Password..."
                                     style={Styles.input}
                                     secureTextEntry={!passwordVisible}
                                     inputContainerStyle={Styles.inputContainer}
                                     labelStyle={Styles.lableStyle}
-                                    rightIcon={<Icon name={passwordEyeIcon} type="feather" color='#8a8703'
+                                    rightIcon={<Icon name={passwordEyeIcon} type="feather" color={appColors.basicRed}
                                         onPress={() => setPasswordVisible(!passwordVisible)} />}
-                                    leftIcon={<Icon name='lock' color='#8a8703' />}
+                                    leftIcon={<Icon name='lock' color={appColors.basicRed} />}
                                     onChangeText={(text) => setUserPassword(text)}
                                     value={userPassword}
                                 />

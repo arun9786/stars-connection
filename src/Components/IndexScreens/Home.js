@@ -7,13 +7,14 @@ import { Appbar, Menu, Divider, Provider } from 'react-native-paper';
 import { Badge, Icon, LinearProgress } from 'react-native-elements';
 import { getAuth, signOut, onAuthStateChanged } from 'firebase/auth'
 import { collection, addDoc, setDoc, doc, getDoc } from 'firebase/firestore'
-import { firestore } from "../config/firebase";
+import { firestore } from "../../config/firebase";
 import { useNavigation } from '@react-navigation/native';
 
-import { PersonalDetailsFun } from '../Redux/Slice/UserProfileSlice';
-import { CompaniesFun } from '../Redux/Slice/CompaniesSlice';
-import { Styles } from '../Styles/HomeCss';
-import basicStrings from '../Strings/basics.json'
+import { PersonalDetailsFun } from '../../Redux/Slice/UserProfileSlice';
+import { CompaniesFun } from '../../Redux/Slice/CompaniesSlice';
+import { Styles } from '../../Styles/HomeCss';
+import basicStrings from '../../Strings/basics.json'
+import appColors from '../../Others/appColors.json'
 
 export default function Home() {
 
@@ -22,7 +23,7 @@ export default function Home() {
     const dispatch = useDispatch();
     const userPersonalDataRedux = useSelector((state) => state.UserProfileReducer.personal);
     const companyDataRedux = useSelector((state) => state.CompaniesReducer.companies_array);
-    const [visibleMainComponent, setVisibleMainComponent] = useState(false);
+    const [visibleMainComponent, setVisibleMainComponent] = useState(true);
 
     const [currentUserID, setCurrentUserID] = useState('');
 
@@ -40,20 +41,20 @@ export default function Home() {
         return () => unsubscribe();
     }, [])
 
-    useEffect(() => {
-        if (currentUserID) {
-            if(!companyDataRedux){
-                getAllCompaniesFromFirestore();
-                console.log("not exist");
-            }else{
-                checkIsUserIsCreatedProfile();
-                console.log("exist");
-            }
-            if(!isUserHavingProfile){
-                checkIsUserIsCreatedProfile();
-            }
-        }
-    }, [currentUserID]);
+    // useEffect(() => {
+    //     if (currentUserID) {
+    //         if(!companyDataRedux){
+    //             getAllCompaniesFromFirestore();
+    //             console.log("not exist");
+    //         }else{
+    //             checkIsUserIsCreatedProfile();
+    //             console.log("exist");
+    //         }
+    //         if(!isUserHavingProfile){
+    //             checkIsUserIsCreatedProfile();
+    //         }
+    //     }
+    // }, [currentUserID]);
 
     const getAllCompaniesFromFirestore = async () => {
         const docRef = doc(firestore, "Companies", "Data");
@@ -87,7 +88,7 @@ export default function Home() {
 
     return (
         <Provider>
-            <Appbar.Header style={Styles.AppbarHeader}>
+            <Appbar.Header style={{backgroundColor:appColors.basicRed}}>
                 <Appbar.Content title={basicStrings.appName} color='white' />
                 <View style={Styles.headerNotificationContainer}>
                     <Icon name='bell' type='feather' color='white' onPress={() => console.log("hello")} />
