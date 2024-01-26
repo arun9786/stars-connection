@@ -17,7 +17,9 @@ import { Styles } from "../../Styles/Registration/SignUpCss";
 import { passwordEncoder } from "../../Security/Encoder";
 import { passwordRegex } from '../../Others/Regex'
 import { FAB } from "react-native-paper";
+
 import CustomToast from "../Features/CustomToast";
+import OverlayLoader from "../Features/OverlayLoader";
 
 export default function SignUp(props) {
 
@@ -44,15 +46,8 @@ export default function SignUp(props) {
     const [userPasswordConfirmSuccessIconColor, setUserPasswordConfirmSuccessIconColor] = useState('');
     const [passwordHint, setPasswordHint] = useState(false);
 
-    const [showOvelay, setShowOverlay] = useState(false);
-    const [overlayStatusMsg, setOverlayStatusMsg] = useState('');
-    const [isLoggingIn, setIsLoggingIn] = useState(false);
-    const [isLoggedInSuccessful, setIsLoggedInSuccessful] = useState(false);
-    const [isLoggedInSuccessFailure, setIsLoggedInSuccessFailure] = useState(false);
-    const [loggeInStatusMsg, setLoggeInStatusMsg] = useState('');
-    const [loggeInStatusIcon, setLoggeInStatusIcon] = useState(require('../../Images/icon-success.gif'));
-    const [loggeInStatusButtonIcon, setLoggeInStatusButtonIcon] = useState('');
-    const [loggeInStatusButtonTitle, setLoggeInStatusButtonTitle] = useState('');
+    const [showOvelayLoader, setShowOvelayLoader] = useState(false);
+    const [ovelayLoaderContent, setOvelayLoaderContent] = useState('');
 
     const [showOTPOvelay, setShowOTPOvelay] = useState(false);
     const [entertedOtp, setEntertedOtp] = useState('');
@@ -101,12 +96,12 @@ export default function SignUp(props) {
 
     const [postSelectTextColor, setPostSelectTextColor] = useState('#ccc');
     const [userPincodeVerified, setUserPincodeVerified] = useState(false);
-    const [pincodeVerifyOverlay, setPincodeVerifyOverlay] = useState(false);
 
 
     const [isVisibleBottomSheet, setIsVisibleBottomSheet] = useState(false);
-    const [isToastVisible,setIsToastVisible]=useState(false);
-    const [toastContent,setToastContent]=useState('');
+
+    const [isToastVisible, setIsToastVisible] = useState(false);
+    const [toastContent, setToastContent] = useState('');
 
     const emailRegex = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/;
     const mobileRegex = /^[6-9]\d{9}$/;
@@ -353,7 +348,8 @@ export default function SignUp(props) {
     }, [entertedOtp]);
 
     const checkGivenPincodeStatus = () => {
-        setPincodeVerifyOverlay(true);
+        setShowOvelayLoader(true);
+        setOvelayLoaderContent('Verifying your pincode ' + userPincode);
         axios.get('https://api.postalpincode.in/pincode/' + userPincode)
             .then((response) => {
                 if (response.status === 200 && response.data && response.data[0].Status === 'Success') {
@@ -361,7 +357,7 @@ export default function SignUp(props) {
                     setUserPincodeSuccessIcon('check');
                     setUserPincodeSuccessIconColor('#238732');
                     setUserPincodeVerified(true);
-                    setPincodeVerifyOverlay(false);
+                    setShowOvelayLoader(false);
 
                     const data = response.data[0].PostOffice.map((obj) => {
                         return { key: obj.Name, label: obj.Name }
@@ -376,9 +372,9 @@ export default function SignUp(props) {
                     setUserPincode('');
                     setUserPincodeSuccessIcon('x');
                     setUserPincodeSuccessIconColor('#8c0a1b');
-                    Toast("Invalid Pincode",undefined,3500)
+                    Toast("Invalid Pincode", undefined, 3500)
                     setUserPincodeVerified(false);
-                    setPincodeVerifyOverlay(false);
+                    setShowOvelayLoader(false);
                 }
                 console.log("response", response);
             })
@@ -386,8 +382,8 @@ export default function SignUp(props) {
                 setUserPincode('');
                 setUserPincodeSuccessIcon('x');
                 setUserPincodeSuccessIconColor('#8c0a1b');
-                setPincodeVerifyOverlay(false);
-                Toast("Try Again: " + error.message,true,4000);
+                setShowOvelayLoader(false);
+                Toast("Try Again: " + error.message, true, 4000);
                 setUserPincodeVerified(false);
                 console.log("error", JSON.stringify(error.message));
             })
@@ -415,20 +411,20 @@ export default function SignUp(props) {
         }
     }
 
-    const Toast=(message,errorStatus=true,timeout=2000,position='bottom')=>{
-        let content={"visible":true,"message":message,"errorStatus":errorStatus, "timeout":timeout,"position":position};
+    const Toast = (message, errorStatus = true, timeout = 2000, position = 'top') => {
+        let content = { "message": message, "errorStatus": errorStatus, "timeout": timeout, "position": position };
         setToastContent(content);
         console.log(content);
         setIsToastVisible(true);
-        setTimeout(()=>{
+        setTimeout(() => {
             setIsToastVisible(false);
-        },timeout);
+        }, timeout);
     }
 
     const handleSubmit = async () => {
         setUserModifiedEmail(userEmail.replace(/\./g, "-"))
         if (userFirstName.length < 4) {
-            Toast("Enter Valid First Name",undefined,undefined,'top');
+            Toast("Enter Valid First Name", undefined, undefined, 'top');
         } else if (userLastName.length < 1) {
             Toast("Enter Valid Last Name");
         } else if (!mobileRegex.test(userPhone)) {
@@ -455,32 +451,26 @@ export default function SignUp(props) {
 
     const sendOTPtoUserMobile = async () => {
         setShowOTPOvelay(false);
-        setOverlayStatusMsg('Recaptcha Verifying...');
-        setShowOverlay(true);
-        setIsLoggingIn(true);
-        setIsLoggedInSuccessFailure(false);
+        setOvelayLoaderContent('Recaptcha Verifying...');
+        setShowOvelayLoader(true);
         try {
             const phoneProvider = new PhoneAuthProvider(auth);
             const verificationId = await phoneProvider.verifyPhoneNumber(
                 '+91' + userPhone,
                 recaptchaVerifier.current
             )
-            setOverlayStatusMsg('Sending OTP...');
+            setOvelayLoaderContent('Sending OTP...');
             console.log(verificationId);
             const timer = setTimeout(() => {
-                Toast("OTP sent to your mobile",false);
+                Toast("OTP sent to your mobile", false);
                 setOtpCredentials(verificationId);
-                setShowOverlay(false);
-                setIsLoggingIn(false);
-                setIsLoggedInSuccessFailure(false);
+                setShowOvelayLoader(false);
                 setShowOTPOvelay(true);
             }, 1000);
             return () => clearTimeout(timer);
         } catch (error) {
-            Toast(error.message);
-            setShowOverlay(false);
-            setIsLoggingIn(false);
-            setIsLoggedInSuccessFailure(false);
+            Toast(error.message, undefined, 5000);
+            setShowOvelayLoader(false);
             console.log(error);
         }
     }
@@ -488,32 +478,22 @@ export default function SignUp(props) {
     const signInWithPhoneNumberFun = async () => {
         try {
             setShowOTPOvelay(false);
-            setOverlayStatusMsg('Verifying OTP...');
-            setShowOverlay(true);
-            setIsLoggingIn(true);
-            setIsLoggedInSuccessFailure(false);
+            setShowOvelayLoader(true);
+            setOvelayLoaderContent('Verifying OTP...');
             const credential = PhoneAuthProvider.credential(otpCredentials, entertedOtp);
             signInWithCredential(auth, credential)
                 .then(() => {
-                    Toast("OTP verified...",true);
+                    Toast("OTP verified...", true);
                     storeUserDetailsInFirebase();
                 })
                 .catch((error) => {
                     setShowOTPOvelay(true);
-                    setShowOverlay(false);
-                    setIsLoggingIn(false);
+                    setShowOvelayLoader(false);
                     console.log(error.message);
                     Toast(error.message);
                 })
         } catch (error) {
-            setShowOverlay(false);
-            setIsLoggedInSuccessful(false);
-            setIsLoggingIn(false);
-            setIsLoggedInSuccessFailure(true);
-            setLoggeInStatusMsg("Error:" + error.message + ". Please try again later.");
-            setLoggeInStatusIcon(require('../../Images/icon-error.gif'));
-            setLoggeInStatusButtonIcon('refresh-cw');
-            setLoggeInStatusButtonTitle('Retry');
+            setShowOvelayLoader(false);
             console.log(error.message)
             Toast(error.message);
         }
@@ -521,10 +501,8 @@ export default function SignUp(props) {
 
     const storeUserDetailsInFirebase = async () => {
         setShowOTPOvelay(false);
-        setOverlayStatusMsg('Storing your details in Database...');
-        setShowOverlay(true);
-        setIsLoggingIn(true);
-        setIsLoggedInSuccessFailure(false);
+        setOvelayLoaderContent('Storing your details in Database...');
+        setShowOvelayLoader(true);
         const encodedPassword = passwordEncoder(userPassword);
         try {
             setDoc(doc(firestore, "Users", userPhone, "Personal Details", "Data"), {
@@ -543,40 +521,30 @@ export default function SignUp(props) {
                 State: userState,
                 Country: userDistrict,
             });
-            setIsLoggedInSuccessful(true);
-            setIsLoggingIn(false);
-            setIsLoggedInSuccessFailure(true);
-            setLoggeInStatusMsg('Your account has been created successfully.');
-            setLoggeInStatusIcon(require('../../Images/icon-success.gif'));
-            setLoggeInStatusButtonIcon('home');
-            setLoggeInStatusButtonTitle('Home');
-        } catch (e) {
-            console.log(e);
-            setIsLoggedInSuccessful(false);
-            setIsLoggingIn(false);
-            setIsLoggedInSuccessFailure(true);
-            setLoggeInStatusMsg("Error: Unable to save your information. Please try again later.");
-            setLoggeInStatusIcon(require('../../Images/icon-error.gif'));
-            setLoggeInStatusButtonIcon('refresh-cw');
-            setLoggeInStatusButtonTitle('Retry');
+            Toast('Your account has been created successfully...', false, undefined, 'top')
+            const timer = setTimeout(() => {
+                openIndexPage()
+            }, 2000);
+            return () => clearTimeout(timer);
+        } catch (error) {
+            setShowOvelayLoader(false);
+            console.log(error);
+            Toast(error.message, true, 5000);
         }
     }
 
-    const loginStatusFun = () => {
-        setShowOverlay(false);
-        if (isLoggedInSuccessful) {
-            navigation.reset({
-                index: 0,
-                routes: [{ name: 'Index' }],
-            });
-        }
+    const openIndexPage = () => {
+        navigation.reset({
+            index: 0,
+            routes: [{ name: 'Index' }],
+        });
     }
 
     return (
         <View>
-           {isToastVisible && <CustomToast content={toastContent} handleToastVisible={()=>setIsToastVisible(false)}/> }
-           
-            
+            {isToastVisible && <CustomToast content={toastContent} handleToastVisible={() => setIsToastVisible(false)} />}
+            {showOvelayLoader && <OverlayLoader content={ovelayLoaderContent} />}
+
             <ScrollView>
                 <View>
                     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
@@ -587,7 +555,7 @@ export default function SignUp(props) {
                                     firebaseConfig={app.options}
                                     attemptInvisibleVerification='true'
                                 /> */}
-                               
+
                                 <Input placeholder="Enter First Name..."
                                     style={Styles.input}
                                     inputContainerStyle={Styles.inputContainer}
@@ -777,15 +745,6 @@ export default function SignUp(props) {
                         </View>
                     </TouchableWithoutFeedback>
 
-                    <Overlay isVisible={pincodeVerifyOverlay}>
-                        <View style={Styles.pincodeOverlayStyle}>
-                            <Text style={Styles.pincodeOverlayTitle}>Please wait...</Text>
-                            <Text style={Styles.pincodeOverlayMsg}>Verifying your pincode ({userPincode})</Text>
-                            <ActivityIndicator size="large" style={Styles.overlayActivityIndicator}
-                                color='#2e4dbf' />
-                        </View>
-                    </Overlay>
-
                     <Overlay isVisible={showOTPOvelay} overlayStyle={Styles.otpOverlayStyle}>
                         <Text onPress={() => setShowOTPOvelay(false)} style={Styles.cancelButtonText}>x</Text>
 
@@ -816,52 +775,20 @@ export default function SignUp(props) {
 
 
                     </Overlay>
-
-                    <Overlay isVisible={showOvelay} overlayStyle={Styles.overlayStyle}>
-                        {
-                            isLoggingIn &&
-                            <View>
-                                <Text style={Styles.overlayPleaseWait}>
-                                    Please Wait...
-                                </Text>
-                                <Text style={Styles.overlayVerifingCredentials}>
-                                    {overlayStatusMsg}
-                                </Text>
-                                <ActivityIndicator size="large" style={Styles.overlayActivityIndicator}
-                                    color='#2e4dbf' animating={true} />
-                            </View>
-                        }
-                        {
-                            isLoggedInSuccessFailure &&
-                            <View style={Styles.overlayViewLoginSuccess}>
-                                <Text style={Styles.overlaySignInSuccess}>
-                                    {loggeInStatusMsg}
-                                </Text>
-                                <Image source={loggeInStatusIcon}
-                                    style={Styles.overlaySuccessIcon} />
-                                <Button title={loggeInStatusButtonTitle}
-                                    icon={<Icon name={loggeInStatusButtonIcon} type='feather' color='white' style={Styles.overlaySuccessButtonIcon} />}
-                                    onPress={loginStatusFun}
-                                />
-                            </View>
-                        }
-
-
-                    </Overlay>
                 </View>
             </ScrollView>
             <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-        
-            <View style={Styles.buttonViewContainer} >
-                <Button title='REGISTER'
-                    icon={<Icon name='arrow-right' type='feather' color='white' style={Styles.buttonIcon} />}
-                    iconPosition='right'
-                    loading={false} buttonStyle={Styles.button}
-                    onPress={handleSubmit}
-                    containerStyle={Styles.buttonContainer}
-                />
-                
-            </View>
+
+                <View style={Styles.buttonViewContainer} >
+                    <Button title='REGISTER'
+                        icon={<Icon name='arrow-right' type='feather' color='white' style={Styles.buttonIcon} />}
+                        iconPosition='right'
+                        loading={false} buttonStyle={Styles.button}
+                        onPress={handleSubmit}
+                        containerStyle={Styles.buttonContainer}
+                    />
+
+                </View>
             </TouchableWithoutFeedback>
 
         </View>

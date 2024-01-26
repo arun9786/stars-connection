@@ -3,27 +3,34 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import { Icon } from 'react-native-elements';
 import { TouchableOpacity } from 'react-native-gesture-handler';
+import {Styles} from '../../Styles/Features/CustomToastCss'
 
 const CustomToast = ({ content, handleToastVisible }) => {
   const translateY = new Animated.Value(0);
-  console.log(content.message.length);
+  const message = capitalizeWords(content.message);
   const startPosition = content.position === 'top' ? -200 : 200;
   const endPosition = content.position === 'top' ? 0 : -100;
-  let contentFontSize=content.message.length>30 ? (content.message.length>40?15:17 ):19;
+  let contentFontSize = content.message.length > 30 ? (content.message.length > 40 ? 15 : 17) : 19;
   useEffect(() => {
     Animated.timing(translateY, {
       toValue: 1,
-      duration: 500,
+      duration: 800,
       useNativeDriver: true,
     }).start();
   }, [content]);
 
+  function capitalizeWords(sentence) {
+    return sentence.replace(/\b\w/g, function (match) {
+      return match.toUpperCase();
+    });
+  }
+
   return (
     <Animated.View
       style={[
-        styles.toastContainer,
+        Styles.toastContainer,
         {
-          [content.position]:0,
+          [content.position]: 0,
           transform: [
             {
               translateY: translateY.interpolate({
@@ -35,58 +42,22 @@ const CustomToast = ({ content, handleToastVisible }) => {
         },
       ]}
     >
-      <View style={styles.toastContent}>
+      <View style={Styles.toastContent}>
         <Icon
           name={content.errorStatus ? 'x-circle' : 'check-circle'}
           type='feather'
           color={content.errorStatus ? '#db0723' : 'green'}
-          style={{marginLeft:5}}
+          style={{ marginLeft: 5 }}
         />
-        <View style={styles.textContainer}>
-          <Text style={[styles.toastText,{fontSize:contentFontSize}]}>{content.message}</Text>
+        <View style={Styles.textContainer}>
+          <Text style={[Styles.toastText, { fontSize: contentFontSize }]}>{message}</Text>
         </View>
-        <TouchableOpacity onPress={handleToastVisible} style={styles.closeButton}>
+        <TouchableOpacity onPress={handleToastVisible} style={Styles.closeButton}>
           <Icon name='x' color='#9c9b9a' type='feather' />
         </TouchableOpacity>
       </View>
     </Animated.View>
   );
 };
-
-const styles = StyleSheet.create({
-  toastContainer: {
-    position: 'absolute',
-    right: 0,
-    zIndex: 999,
-    width: '100%',
-  },
-  toastContent: {
-    padding: 15,
-    flex: 1,
-    backgroundColor: 'white',
-    flexDirection: 'row',
-    marginTop: 10,
-    marginLeft: 20,
-    marginRight: 20,
-    alignItems: 'center',
-    justifyContent:'center',
-    borderWidth:1,
-    borderColor:'#e3e2e1',
-  },
-  textContainer: {
-    flex: 1, 
-    marginLeft: 7,
-    alignItems:'center',
-    justifyContent:'center',
-  },
-  toastText: {
-    fontFamily: 'sans-serif',
-    color: 'black',
-    fontSize: 19,
-  },
-  closeButton: {
-    
-  },
-});
 
 export default CustomToast;

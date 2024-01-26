@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Keyboard, ScrollView, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
-import { Button, Icon, Image, Input, Overlay, Text } from "react-native-elements";
+import { Keyboard, ScrollView, TouchableWithoutFeedback, View } from "react-native";
+import { Button, Icon,  Input, Text } from "react-native-elements";
 import { useNavigation } from '@react-navigation/native';
 import { RadioGroup } from "react-native-radio-buttons-group";
 
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth'
+import { getAuth,onAuthStateChanged } from 'firebase/auth'
 import { firestore } from "../../config/firebase";
-import { collection, doc, getDoc, getDocs } from 'firebase/firestore'
+import {  doc, getDoc, } from 'firebase/firestore'
 
 import { Styles } from "../../Styles/Registration/LogInCss";
 import { mobileRegex, passwordRegex } from '../../Others/Regex'
@@ -15,29 +15,25 @@ import { checkInternetConnection } from "../../Others/InternetConnectionStatus";
 import { passwordEncoder } from "../../Security/Encoder";
 import { useDispatch, useSelector } from "react-redux";
 import { PersonalDetailsFun } from "../../Redux/Slice/UserProfileSlice";
-import { Provider, overlay } from "react-native-paper";
+import { Provider } from "react-native-paper";
+
 import CustomToast from "../Features/CustomToast";
+import OverlayLoader from "../Features/OverlayLoader";
 
 
 export default function LogIn(props) {
-    const [passwordVisible, setPasswordVisible] = useState(false);
-    const [passwordEyeIcon, setPasswordEyeIcon] = useState('eye-off');
-    const [isError, setIsError] = useState(true);
-    const [errorMsg, setErrorMsg] = useState('');
-    const [showOvelay, setShowOverlay] = useState(false);
-    const [isLoggingIn, setIsLoggingIn] = useState(false);
-    const [isLoggedInSuccessful, setIsLoggedInSuccessful] = useState(false);
-    const [isLoggedInSuccessFailure, setIsLoggedInSuccessFailure] = useState(false);
-    const [loggeInStatusMsg, setLoggeInStatusMsg] = useState('');
-    const [loggeInStatusIcon, setLoggeInStatusIcon] = useState(require('../../Images/icon-success.gif'));
-    const [loggeInStatusButtonIcon, setLoggeInStatusButtonIcon] = useState('');
-    const [loggeInStatusButtonTitle, setLoggeInStatusButtonTitle] = useState('');
-
     const [userPhone, setUserPhone] = useState('6379185147');
     const [userPassword, setUserPassword] = useState('9786@RArun');
 
+    const [passwordVisible, setPasswordVisible] = useState(false);
+    const [passwordEyeIcon, setPasswordEyeIcon] = useState('eye-off');
+
     const [isToastVisible, setIsToastVisible] = useState(false);
     const [toastContent, setToastContent] = useState(false);
+
+    const [showOvelayLoader, setShowOvelayLoader] = useState(false);
+    const [ovelayLoaderContent, setOvelayLoaderContent] = useState('');
+
 
     const radioButtonsSignIn = useMemo(() => ([
         {
@@ -97,16 +93,10 @@ export default function LogIn(props) {
         }
     }, [passwordVisible]);
 
-    const openSignupPage = () => {
-        navigation.navigate('SignUp');
-    }
+    
 
-    const openForgotPasswordPage = () => {
-        navigation.navigate('Forgot Password');
-    }
-
-    const Toast = (message, errorStatus = true, timeout = 2500,position='bottom') => {
-        let content = { "visible": true, "message": message, "errorStatus": errorStatus, "timeout": timeout, "position":position };
+    const Toast = (message, errorStatus = true, timeout = 2500, position = 'top') => {
+        let content = { "message": message, "errorStatus": errorStatus, "timeout": timeout, "position": position };
         setToastContent(content);
         setIsToastVisible(true);
         setTimeout(() => {
@@ -116,64 +106,42 @@ export default function LogIn(props) {
 
     const LogInWithEmailFun = async () => {
         if (!mobileRegex.test(userPhone)) {
-            setIsError(true);
-            setErrorMsg('Please enter a valid phone number.');
             Toast('Please enter a valid phone number.');
         } else if (!passwordRegex.test(userPassword)) {
-            setIsError(true);
             if (userPassword.length > 0) {
-                setErrorMsg('The password you entered is incorrect.');
                 Toast('The password you entered is incorrect.')
             } else {
-                setErrorMsg('Please enter your password.');
                 Toast('Please enter your password.');
             }
         } else {
             let networkStatus = await checkInternetConnection();
             if (networkStatus) {
-                setIsError(false);
-                setErrorMsg('');
-                setShowOverlay(true);
-                setIsLoggingIn(true);
-                setIsLoggedInSuccessFailure(false);
+                setShowOvelayLoader(true);
+                setOvelayLoaderContent("While we verifying your credentials...");
                 getDoc(doc(firestore, "Users", userPhone, "Personal Details", "Data"))
                     .then((result) => {
                         console.log(result.data());
+                        setShowOvelayLoader(false);
                         if (result.data()) {
+                            setShowOvelayLoader(false);
                             let encodedPassword = passwordEncoder(userPassword);
                             if (result.data().Password === encodedPassword) {
-                                setIsLoggedInSuccessful(true);
-                                setShowOverlay(false);
-                                setIsLoggingIn(false);
-                                // setIsLoggedInSuccessFailure(true);
-                                // setLoggeInStatusMsg('Sign-in successfull...');
-                                // setLoggeInStatusIcon(require('../../Images/icon-success.gif'));
-                                // setLoggeInStatusButtonIcon('home');
-                                // setLoggeInStatusButtonTitle('Home');
-                                
                                 dispatch(PersonalDetailsFun(result.data()));
+                                Toast('Sign-in successful...', false, undefined, 'top')
+                                const timer = setTimeout(() => {
+                                    openIndexPage()
+                                }, 2000);
+                                return () => clearTimeout(timer);
                             } else {
-                                setIsLoggedInSuccessful(false);
-                                setIsLoggingIn(false);
-                                setIsLoggedInSuccessFailure(true);
-                                setLoggeInStatusMsg("Invalid Password...");
-                                setLoggeInStatusIcon(require('../../Images/icon-error.gif'));
-                                setLoggeInStatusButtonIcon('refresh-cw');
-                                setLoggeInStatusButtonTitle('Retry');
-                                console.log("Invalid User")
+                                Toast("Invalid credentials provided. Please check your information and try again.", undefined, 5000);
                             }
                         } else {
-                            setShowOverlay(false);
-                            setIsLoggingIn(false);
-                            Toast("Oops! Unregistered mobile number. Verify or Create a new account.",  true,5000);
-                            console.log("Invalid Mobile number")
+                            setShowOvelayLoader(false);
+                            Toast("Oops! Unregistered mobile number. Verify or Create a new account.", true, 5000);
                         }
                     })
                     .catch((error) => {
-                        setShowOverlay(false);
-                        setIsLoggingIn(false);
-                        setIsLoggedInSuccessFailure(false);
-                        setIsLoggedInSuccessFailure(true);
+                        setShowOvelayLoader(false);
                         console.log(error);
                         Toast(error.message, true, 5000);
                     })
@@ -181,26 +149,19 @@ export default function LogIn(props) {
         }
     }
 
-    useEffect(()=>{
-        if(isLoggedInSuccessful && !showOvelay && !isLoggingIn){
-            Toast('Sign-in successful...',false)
-            const timer = setTimeout(() => {
-                openIndexPage()
-            }, 2000);
-            return () => clearTimeout(timer);
-        }
-        
-    },[isLoggedInSuccessful, showOvelay, isLoggingIn])
-
-    const openIndexPage =()=>{
+    const openIndexPage = () => {
         navigation.reset({
-                    index: 0,
-                    routes: [{ name: 'Index' }],
-                });
+            index: 0,
+            routes: [{ name: 'Index' }],
+        });
     }
-    const loginStatusFun = () => {
-        setShowOverlay(false);
-       
+
+    const openSignupPage = () => {
+        navigation.navigate('SignUp');
+    }
+
+    const openForgotPasswordPage = () => {
+        navigation.navigate('Forgot Password');
     }
 
     return (
@@ -208,6 +169,7 @@ export default function LogIn(props) {
             <View>
 
                 {isToastVisible && <CustomToast content={toastContent} handleToastVisible={() => setIsToastVisible(false)} />}
+                {showOvelayLoader && <OverlayLoader content={ovelayLoaderContent} />}
                 <ScrollView>
                     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
                         <View style={Styles.contaier}>
@@ -251,10 +213,6 @@ export default function LogIn(props) {
                                     value={userPassword}
                                 />
 
-                                {
-                                    isError && <Text style={Styles.errorMsg}>{errorMsg}</Text>
-                                }
-
                                 <Button title='Sign-In'
                                     icon={<Icon name='arrow-right' color='white' style={Styles.buttonIcon} />}
                                     iconPosition='right'
@@ -279,40 +237,9 @@ export default function LogIn(props) {
 
                         </View>
                     </TouchableWithoutFeedback>
-                    <Overlay isVisible={showOvelay} overlayStyle={Styles.overlayStyle}>
-                        {
-                            isLoggingIn &&
-                            <View>
-                                <Text style={Styles.overlayPleaseWait}>
-                                    Please Wait...
-                                </Text>
-                                <Text style={Styles.overlayVerifingCredentials}>
-                                    While we verifying your credentials...
-                                </Text>
-                                <ActivityIndicator size="large" style={Styles.overlayActivityIndicator}
-                                    color='#2e4dbf' animating={true} />
-                            </View>
-                        }
-                        {
-                            isLoggedInSuccessFailure &&
-                            <View style={Styles.overlayViewLoginSuccess}>
-                                <Text style={Styles.overlaySignInSuccess}>
-                                    {loggeInStatusMsg}
-                                </Text>
-                                <Image source={loggeInStatusIcon}
-                                    style={Styles.overlaySuccessIcon} />
-                                <Button title={loggeInStatusButtonTitle}
-                                    icon={<Icon name={loggeInStatusButtonIcon} type='feather' color='white' style={Styles.overlaySuccessButtonIcon} />}
-                                    onPress={loginStatusFun}
-                                />
-                            </View>
-                        }
 
-
-                    </Overlay>
                 </ScrollView>
             </View>
-
         </Provider>
 
     )
