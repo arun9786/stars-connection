@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Animated, FlatList, Keyboard, KeyboardAvoidingView, Linking, TouchableOpacity, View } from "react-native";
+import { Animated, Clipboard, FlatList, Keyboard, KeyboardAvoidingView, Linking, TouchableOpacity, View } from "react-native";
 import { Button, Icon, Image, Input, Text } from "react-native-elements";
 import { Provider } from "react-native-paper";
 
@@ -24,6 +24,10 @@ const Invite = (props) => {
   const [referalCode, setReferalCode] = useState('');
   const [dummyReferalCode, setDummyReferalCode] = useState('');
   const [contacts, setContacts] = useState([]);
+  const [filteredContacts, setFilteredContacts]=useState([]);
+  const [copyIconName,setCopyIconName]=useState('copy');
+
+  const [phoneIn,setPhoneIn]=useState('');
 
   const [isToastVisible, setIsToastVisible] = useState(false);
   const [toastContent, setToastContent] = useState(false);
@@ -31,6 +35,7 @@ const Invite = (props) => {
 
   const [showPhoneNumberContainer, setShowPhoneNumberContainer] = useState(false);
 
+  const inputRef = useRef();
   const scrollViewRef = useRef();
 
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -59,24 +64,22 @@ const Invite = (props) => {
     const keyboardDidShowListener = Keyboard.addListener(
       'keyboardDidShow',
       () => {
-
+        console.log("show")
       }
     );
 
     const keyboardDidHideListener = Keyboard.addListener(
       'keyboardDidHide',
       () => {
-        // console.log(showPhoneNumberContainer);
+        console.log("came")
+        if(showPhoneNumberContainer){
+          setShowPhoneNumberContainer(false);
+        }
+        
       }
     );
-
-    // // Cleanup listeners on component unmount
     return () => {
-      keyboardDidShowListener.remove();
-      keyboardDidHideListener.remove();
     };
-
-
   }, []);
 
   useEffect(() => {
@@ -114,14 +117,48 @@ const Invite = (props) => {
     return str
   }
 
-  const sendWhatsappMessage = () => {
+  useEffect(() => {
+    if (showPhoneNumberContainer) {
+      handleScrollToTop();
+    }
+  }, [showPhoneNumberContainer])
+
+  useEffect(()=>{
+    console.log(phoneIn);
+    setFilteredContacts(contacts.filter(contact => contact.phoneNumbers && ( contact.name.toLocaleLowerCase().includes(phoneIn.trim().toLocaleLowerCase()) ||  contact.phoneNumbers[0].number.replace(/\s/g, '').includes(phoneIn.trim().toLocaleLowerCase()))));
+  },[contacts,phoneIn])
+
+  const getInitials = (name) => {
+    const words = name.split(' ');
+    const validWords = words.filter((word) => /^[a-zA-Z0-9,.!@#$%^&*()-_+=\s]+$/.test(word));
+    const newWords = validWords.map((word) => word[0]).join('');
+    const finalWord = newWords[0] + newWords[newWords.length - 1];
+    return finalWord;
+  };
+
+  const copyReferalCode=()=>{
+    Clipboard.setString(referalCode);
+    setCopyIconName('check');
+    setIsToastVisible(true);
+    Toast('Referal code is copied!',false)
+    const interval=setTimeout(()=>{
+      setCopyIconName('copy');
+    },3000);
+    return ()=>clearTimeout(interval);
+  }
+
+  const sendWhatsappMessage = (phone) => {
+    let phoneWithCountryCode=phone
+    if(!phone.includes('+91')){
+      phoneWithCountryCode=("+91")+phone;
+    }
+    console.log(phoneWithCountryCode);
     let msg = "Hey!\nRefer your friend to get exiting rewards/\nDownload the app now by using the following link:";
-    let phoneWithCountryCode = "+916379185147";
 
     let mobile = Platform.OS == "ios" ? phoneWithCountryCode : "+" + phoneWithCountryCode;
     if (mobile) {
       if (msg) {
-        let url = "whatsapp://send?text=" + msg;
+        let url = "whatsapp://send?text=" + msg+"&phone="+phoneWithCountryCode;
         Linking.openURL(url)
           .then(data => {
             console.log("WhatsApp Opened");
@@ -137,20 +174,6 @@ const Invite = (props) => {
     }
   }
 
-  useEffect(() => {
-    if (showPhoneNumberContainer) {
-      handleScrollToTop();
-    }
-  }, [showPhoneNumberContainer])
-
-  const getInitials = (name) => {
-    const words = name.split(' ');
-    const validWords = words.filter((word) => /^[a-zA-Z0-9,.!@#$%^&*()-_+=\s]+$/.test(word));
-    const newWords = validWords.map((word) => word[0]).join('');
-    const finalWord = newWords[0] + newWords[newWords.length - 1];
-    return finalWord;
-  };
-
   
 
   return (
@@ -158,8 +181,10 @@ const Invite = (props) => {
       <Appbar.Header style={{ backgroundColor: appColors.basicRed }}>
         <Appbar.Content title="Invite & Get Rewards" color='white' />
       </Appbar.Header>
-      <KeyboardAvoidingView >
-        <ScrollView
+      <View style={Styles.container}>
+      {isToastVisible && <CustomToast content={toastContent} handleToastVisible={()=>setIsToastVisible(false)}/> }
+
+      <ScrollView
           onScroll={handleScroll}
           scrollEventThrottle={16}
           keyboardShouldPersistTaps="handled"
@@ -167,7 +192,7 @@ const Invite = (props) => {
         >
           <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
             {!showPhoneNumberContainer &&
-              <View>
+              <View >
                   <Button
                     title='Add Connection Directly'
                     icon={<Icon name="arrow-right" type="feather" color='white' iconStyle={Styles.addConnectionIcon} />}
@@ -180,11 +205,12 @@ const Invite = (props) => {
                   <Button
                     title={dummyReferalCode}
                     icon={
-                      <Icon name='copy' type="feather" color={appColors.basicRed} iconStyle={Styles.copyReferalIcon} />
+                      <Icon name={copyIconName} type="feather" color={appColors.basicRed} iconStyle={Styles.copyReferalIcon} />
                     }
                     iconPosition="right"
                     buttonStyle={Styles.referalCodeButton}
                     titleStyle={Styles.referalCodeButtonTitle}
+                    onPress={()=>copyReferalCode()}
                   />
                   <Text style={Styles.clicktoCopyCodeText}>( Click to copy the code )</Text>
                   <Text style={Styles.referalCodeText}>Referal Code</Text>
@@ -207,14 +233,17 @@ const Invite = (props) => {
                     style={Styles.input}
                     inputContainerStyle={Styles.inputContainer}
                     leftIcon={<Icon name='search' type='feather' color='#c5c7c7' style={Styles.inputIcon} />}
-                    onFocus={() => setShowPhoneNumberContainer(true)}
+                    focusable={false}
+                    onBlur={()=>console.log("on Blur")}
+                    onChangeText={(text)=>setPhoneIn(text)}
+                    value={phoneIn}
+                    onPressIn={()=>setShowPhoneNumberContainer(true)}
                   />
 
-                {contacts.map((contact) => (
-                  contact.phoneNumbers &&
+                {filteredContacts.map((contact) => (
                   (
-
-                    <View key={contact.id} style={Styles.phoneViewContainer}>
+                    <TouchableOpacity key={contact.id} onPress={()=>sendWhatsappMessage(contact.phoneNumbers[0].number.replace(/\s/g, ''))}>
+                      <View  style={Styles.phoneViewContainer}  >
                       {
                         contact.imageAvailable ?
                           <Image
@@ -234,31 +263,24 @@ const Invite = (props) => {
                             <Icon name="whatsapp" type='font-awesome' color={appColors.basicRed}/>
                           </View>
                       </View>
-                    </View>)
+                    </View>
+                    </TouchableOpacity>)
+                    
                 ))}
 
               </View>
             }
             {showPhoneNumberContainer &&
-              <View>
-                <Input
-                    placeholder="Search Name or Mobile No."
-                    style={Styles.input}
-                    inputContainerStyle={Styles.inputContainer}
-                    leftIcon={<Icon name='search' type='feather' color='#c5c7c7' style={Styles.inputIcon} />}
-                    onFocus={() => setShowPhoneNumberContainer(true)}
-                  />
-
-                {contacts.map((contact) => (
-                  contact.phoneNumbers &&
+              <View style={{marginTop:100}}>
+                {filteredContacts.map((contact) => (
                   (
-
-                    <View key={contact.id} style={Styles.phoneViewContainer}>
+                    <TouchableOpacity key={contact.id} onPress={()=>sendWhatsappMessage(contact.phoneNumbers[0].number.replace(/\s/g, ''))}>
+                    <View style={Styles.phoneViewContainer} >
                       {
                         contact.imageAvailable ?
                           <Image
-                            source={{ uri: contact.image.uri }} // Replace with the actual image source
-                            style={{...Styles.phoneViewImage}} // Adjust the width and height as needed
+                            source={{ uri: contact.image.uri }} 
+                            style={{...Styles.phoneViewImage}} 
                           /> :
                           <Text style={{...Styles.phoneViewImageText,backgroundColor:getColorCode()}}>
                             {getInitials(contact.name)}</Text>
@@ -273,16 +295,29 @@ const Invite = (props) => {
                             <Icon name="whatsapp" type='font-awesome' color={appColors.basicRed}/>
                           </View>
                       </View>
-                    </View>)
+                    </View>
+                    </TouchableOpacity>
+                  )
                 ))}
               </View>
             }
           </TouchableWithoutFeedback>
-
-
         </ScrollView>
-
-      </KeyboardAvoidingView>
+        {showPhoneNumberContainer &&
+        <Input
+                    placeholder="Search Name or Mobile No."
+                    style={Styles.input}
+                    inputContainerStyle={Styles.inputContainer}
+                    leftIcon={<Icon name='search' type='feather' color='#c5c7c7' style={Styles.inputIcon} />}
+                    onChangeText={(text)=>setPhoneIn(text)}
+                    value={phoneIn}
+                    containerStyle={{position:'absolute',top:0,right:0,zIndex:1,backgroundColor:'white'}}
+                    ref={inputRef}
+                    autoFocus={showPhoneNumberContainer}
+                    onBlur={()=>setShowPhoneNumberContainer(false)}
+                  />
+        }
+      </View>
     </Provider>
 
   )
