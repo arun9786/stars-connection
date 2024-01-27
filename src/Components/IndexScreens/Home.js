@@ -12,7 +12,7 @@ import { useNavigation } from '@react-navigation/native';
 
 import { PersonalDetailsFun } from '../../Redux/Slice/UserProfileSlice';
 import { CompaniesFun } from '../../Redux/Slice/CompaniesSlice';
-import { Styles } from '../../Styles/HomeCss';
+import { Styles } from '../../Styles/IndexScreens/HomeCss';
 import basicStrings from '../../Strings/basics.json'
 import appColors from '../../Others/appColors.json'
 

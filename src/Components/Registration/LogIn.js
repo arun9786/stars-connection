@@ -130,7 +130,7 @@ export default function LogIn(props) {
                                 Toast('Sign-in successful...', false, undefined, 'top')
                                 const timer = setTimeout(() => {
                                     openIndexPage()
-                                }, 1500);
+                                }, 1000);
                                 return () => clearTimeout(timer);
                             } else {
                                 Toast("Invalid credentials provided. Please check your information and try again.", undefined, 5000);

@@ -14,5 +14,21 @@ const passwordEncoder=(password)=>{
     return encodedPassword.trim(); 
 }
 
+const phoneEncoderForReferal =(phoneNumber)=>{
+    const shuffledArray = [
+        'A', '7', 'j', '3', 'D', 'N', 'X', 'W', 'z', 'h',
+        'B', 'a', 'k', 'w', '5', 'R', '9', 'p', 'U', 'l',
+    ]
+    let referalCode='';
+    for( let i=0;i<10;i++){
+        let number=parseInt(phoneNumber[i]);
+        if(i%2==0){
+            referalCode+=shuffledArray[number];
+        }else{
+            referalCode+=shuffledArray[19-number];
+        }
+    }
+    return referalCode;
+}
 
-export {passwordEncoder};
+export {passwordEncoder, phoneEncoderForReferal};

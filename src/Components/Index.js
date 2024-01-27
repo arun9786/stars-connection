@@ -29,7 +29,7 @@ export default function Index() {
             case 'Search':
               iconName = 'search';
               break;
-            case 'Invite':
+            case 'Refer & Earn':
               iconName = 'plus-circle';
               break;
             case 'Network':
@@ -54,18 +54,20 @@ export default function Index() {
         tabBarStyle: [{
           "display": "flex",
           "backgroundColor": "white",
-          paddingBottom: 3,
-          paddingTop: 3,
+          paddingBottom: 2,
+          paddingTop: 1,
+          borderTopColor:'#d4d5d6'
         },
         ],
         tabBarLabelStyle: {
           fontWeight:'bold' // Adjust the font size as needed
         },
-      })}>
+      })}
+      >
         <Tab.Screen name="Home" component={Home} options={{ headerShown: false}} />
         <Tab.Screen name="Search" component={Home} options={{ headerShown: false }} />
-        <Tab.Screen name="Invite" component={Invite} options={{ headerShown: false }} />
         <Tab.Screen name="Network" component={Home} options={{ headerShown: false }} />
+        <Tab.Screen name="Refer & Earn" component={Invite} initialParams={{"name":"resetPage"}} options={{ headerShown: false }} />
         <Tab.Screen name="Profile" component={Profile} options={{ headerShown: false }} />
       </Tab.Navigator>
     </Provider>
