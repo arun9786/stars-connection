@@ -6,16 +6,20 @@ import { Button, Icon, Image } from 'react-native-elements';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Home from './IndexScreens/Home';
-import Invite from './IndexScreens/Invite';
+import Invite from './IndexScreens/Invite/Invite';
 import Profile from './Profile';
 
 import appColors from '../Others/appColors.json'
+import { useDispatch, useSelector } from 'react-redux';
 
 const Tab = createBottomTabNavigator();
 
 export default function Index() {
-
   const [isProfileImageExist,setIsProfileImageExist]=useState(false);
+
+  const dispatch = useDispatch();
+    const userPersonalDataRedux = useSelector((state) => state.UserProfileReducer.personal);
+    console.log("from index",userPersonalDataRedux);
 
   return (
     <Provider>
@@ -45,7 +49,7 @@ export default function Index() {
               <Image source={require('../Images/icon-error.gif')} style={{ width: 24, height: 24 }}/>
             </View>
           }else{
-            return <Icon name={iconName} size={size} type='feather' color={color} />;
+            return <Icon name={iconName} size={size} type='feather' color={color} style={{padding:1}}/>;
           }
 
         },
@@ -55,13 +59,13 @@ export default function Index() {
           "display": "flex",
           "backgroundColor": "white",
           paddingBottom: 2,
-          paddingTop: 1,
           borderTopColor:'#d4d5d6'
         },
         ],
         tabBarLabelStyle: {
-          fontWeight:'bold' // Adjust the font size as needed
+          fontWeight:'bold' 
         },
+        tabBarActiveBackgroundColor:'#ebedeb'
       })}
       >
         <Tab.Screen name="Home" component={Home} options={{ headerShown: false}} />

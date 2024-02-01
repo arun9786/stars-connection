@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux';
 
 import { Appbar, Menu, Divider, Provider } from 'react-native-paper';
-import { Badge, Icon, LinearProgress } from 'react-native-elements';
+import { Badge, Button, Icon, LinearProgress } from 'react-native-elements';
 import { getAuth, signOut, onAuthStateChanged } from 'firebase/auth'
 import { collection, addDoc, setDoc, doc, getDoc } from 'firebase/firestore'
 import { firestore } from "../../config/firebase";
@@ -80,11 +80,17 @@ export default function Home() {
     }
 
     const logOutFun = () => {
+        dispatch(PersonalDetailsFun(null));
         navigation.reset({
             index: 0,
             routes: [{ name: 'LogIn' }],
         });
     }
+
+    const navigateSomewhere =()=>{
+        navigation.navigate("Invite");
+    }
+
 
     return (
         <Provider>
@@ -120,6 +126,9 @@ export default function Home() {
             {visibleMainComponent &&
                 <View style={{ backgroundColor: '#000000', flex: 1 }}>
                     <Text style={{ color: 'white' }}>Home</Text>
+                    <Button title="Check"
+                        onPress={navigateSomewhere}
+                        />
                 </View>
             }
         </Provider>

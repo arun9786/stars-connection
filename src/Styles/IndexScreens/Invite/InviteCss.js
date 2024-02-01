@@ -1,11 +1,20 @@
 import { StyleSheet } from "react-native";
-import appColors from '../../Others/appColors.json'
-import { getColorCode } from "../../Others/Basics";
+import appColors from '../../../Others/appColors.json'
+import { getColorCode } from "../../../Others/Basics";
 
 export const Styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor:'white'
+    },
+    headeraddUsersIcon:{
+        marginRight:12,
+    },
+    headerWhatsappIcon:{
+        marginRight:12,
+    },
+    headerSearchIcon:{
+        marginRight:12,
     },
     addConnectionDirectlyButton: {
         margin: 10,

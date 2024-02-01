@@ -2,6 +2,7 @@ import React from "react";
 import { ActivityIndicator, View } from "react-native";
 import { Overlay, Text } from "react-native-elements";
 import { Styles } from "../../Styles/Features/OverlayLoaderCss";
+import appColors from '../../Others/appColors.json'
 
 const OverlayLoader = ({content}) => {
     return (
@@ -14,7 +15,7 @@ const OverlayLoader = ({content}) => {
                     {content}
                 </Text>
                 <ActivityIndicator size="large" style={Styles.overlayActivityIndicator}
-                    color='#2e4dbf' animating={true} />
+                    color={appColors.basicRed} animating={true} />
             </Overlay>
         </View>
     )

@@ -7,35 +7,45 @@ import OTPTextView from "react-native-otp-textinput";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import axios from 'axios'
 
-import { getAuth, PhoneAuthProvider, signInWithCredential, } from "firebase/auth";
-import { app } from '../../config/firebase'
-import { setDoc, doc, writeBatch, getDoc } from 'firebase/firestore'
-import { firestore } from "../../config/firebase";
+import { getAuth, createUserWithEmailAndPassword, onAuthStateChanged, PhoneAuthProvider, signInWithPhoneNumber, signInWithCredential, signInWithEmailAndPassword } from "firebase/auth";
+import { app } from '../../../config/firebase'
+import { setDoc, doc, getDoc, writeBatch } from 'firebase/firestore'
+import { firestore } from "../../../config/firebase";
 import { FirebaseRecaptchaVerifierModal } from "expo-firebase-recaptcha";
 
-import { Styles } from "../../Styles/Registration/SignUpCss";
-import { passwordEncoder } from "../../Security/Encoder";
-import { passwordRegex } from '../../Others/Regex'
+import { Styles } from "../../../Styles/IndexScreens/Invite/AddConnectionCss";
+import { passwordRegex } from '../../../Others/Regex'
 import { FAB } from "react-native-paper";
-import DateTimePicker from '@react-native-community/datetimepicker';
 
-import appColors from '../../Others/appColors.json'
+import appColors from '../../../Others/appColors.json'
 
-import CustomToast from "../Features/CustomToast";
-import OverlayLoader from "../Features/OverlayLoader";
-import OTPVerificationOverlay from "../Features/OTPVerificationOverlay";
-import { phoneDecoderForReferal } from "../../Security/Decoder";
+import CustomToast from "../../Features/CustomToast";
+import OverlayLoader from "../../Features/OverlayLoader";
+import OTPVerificationOverlay from "../../Features/OTPVerificationOverlay";
+import { passwordEncoder } from "../../../Security/Encoder";
+import { phoneDecoderForReferal } from "../../../Security/Decoder";
+import { useSelector } from "react-redux";
 
-export default function SignUp(props) {
+export default function AddConnection(props) {
 
     const auth = getAuth();
     const navigation = useNavigation();
     const recaptchaVerifier = useRef(null);
 
+    const userPersonalDataRedux = useSelector((state) => state.UserProfileReducer.personal);
+    const [referalPhoneNumber, setReferalPhoneNumber] = useState('');
+    // if(userPersonalDataRedux){
+    //     setReferalPhoneNumber(userPersonalDataRedux.Phone);
+    // }
+
+    useEffect(()=>{
+        setReferalPhoneNumber(userPersonalDataRedux.Phone);
+    },[userPersonalDataRedux]);
+    
+
     const [userFirstName, setUserFirstName] = useState('Arun');
     const [userLastName, setUserLastName] = useState('R');
     const [userEmail, setUserEmail] = useState('arunr090601@gmail.com');
-    const [userDOB, setUserDOB] = useState(new Date());
     const [userModifiedEmail, setUserModifiedEmail] = useState('');
     const [userGender, setUserGender] = useState('Male');
     const [userPhone, setUserPhone] = useState('6379185147');
@@ -58,9 +68,6 @@ export default function SignUp(props) {
     const [userEmailSuccessIconColor, setUserEmailSuccessIconColor] = useState('');
     const [userPhoneSuccessIcon, setUserPhoneSuccessIcon] = useState('');
     const [userPhoneSuccessIconColor, setUserPhoneSuccessIconColor] = useState('');
-    const [showDatePicker, setShowDatePicker] = useState(false);
-    const [userDOBSuccessIcon, setUserDOBSuccessIcon] = useState('');
-    const [userDOBSuccessIconColor, setUserDOBSuccessIconColor] = useState('');
     const [passwordVisible, setPasswordVisible] = useState(true);
     const [passwordEyeIcon, setPasswordEyeIcon] = useState('eye');
     const [userPasswordSuccessIcon, setUserPasswordSuccessIcon] = useState('');
@@ -105,19 +112,9 @@ export default function SignUp(props) {
     const [otpVerifyButtonDisabled, setOtpVerifyButtonDisabled] = useState(true);
     const [otpCredentials, setOtpCredentials] = useState(true);
 
-
+    
     const [isVisibleBottomSheet, setIsVisibleBottomSheet] = useState(false);
-
-    const [referalBottomSheetVisible, setReferalBottomSheetVisible] = useState(false);
-    const [userReferalCode, setUserReferalCode] = useState('');
-    const [referalPhoneNumber, setReferalPhoneNumber] = useState('');
-    const [referalCodeVerified, setReferalCodeVerified] = useState(false);
-    const [showReferalMsg, setShowReferalMsg] = useState(false);
-    const [referalMsgColor, setReferalMsgColor] = useState('');
-    const [referalMsg, setReferalMsg] = useState('Referal Code Verified');
-
-    const [connectionsArray, setConnectionsArray] = useState([]);
-
+    
 
     const emailRegex = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/;
     const mobileRegex = /^[6-9]\d{9}$/;
@@ -133,7 +130,7 @@ export default function SignUp(props) {
         //     iconColor: 'black'
         // },
         {
-            title: 'Name: ' + userFirstName + ' ' + userLastName + '\nEmail Id: ' + userEmail + '\nGender: ' + userGender + "\nPhone: +91" + userPhone
+            title: 'Name: ' + userFirstName + ' ' + userLastName + '\nEmail Id: ' + userEmail + '\nGender: ' + userGender + "\nPhone: +91" + userPhone 
                 + "\nAddress: " + (userPlace + ", " + userPost + ", " + userTaluk + ", " + userDistrict + ", " + userState + ", " + userCountry + "."),
             containerStyle: Styles.bottomSheetTextContentContainer,
             titleStyle: Styles.bottomSheetTextContent,
@@ -144,11 +141,7 @@ export default function SignUp(props) {
             title: 'Proceed',
             containerStyle: Styles.bottomSheetProceedButtonContainer,
             titleStyle: Styles.bottomSheetProceedButtonTitle,
-            onPress: () => {
-                setIsVisibleBottomSheet(false);
-                // storeUserDetailsInFirebase();
-                checkUserExistance();
-            },
+            onPress: () => { setIsVisibleBottomSheet(false); checkUserExistance() },
             icon: 'check-circle',
             iconColor: 'white'
         },
@@ -201,17 +194,6 @@ export default function SignUp(props) {
             setUserPhoneSuccessIconColor('#8c0a1b');
         }
     }, [userPhone]);
-
-    useEffect(()=>{
-        if(userDOB.toLocaleDateString()===new Date().toLocaleDateString()){
-            setUserDOBSuccessIcon('x');
-            setUserDOBSuccessIconColor('#8c0a1b');
-        }else{
-            setUserDOBSuccessIcon('check');
-            setUserDOBSuccessIconColor('#238732');
-            
-        }
-    },[userDOB]);
 
     useEffect(() => {
         if (passwordRegex.test(userPassword)) {
@@ -378,23 +360,6 @@ export default function SignUp(props) {
         }
     }, [entertedOtp]);
 
-    const Toast = (message, errorStatus = true, timeout = 2000, position = 'top') => {
-        let content = { "message": message, "errorStatus": errorStatus, "timeout": timeout, "position": position };
-        setToastContent(content);
-        setIsToastVisible(true);
-        setTimeout(() => {
-            setIsToastVisible(false);
-        }, timeout);
-    }
-
-    const handleDateChange = (event, date) => {
-        setShowDatePicker(false);
-        if (date !== undefined) {
-            setUserDOB(date);
-            setShowDatePicker(Platform.OS === 'ios');
-        } 
-    };
-    
     const checkGivenPincodeStatus = () => {
         setShowOvelayLoader(true);
         setOvelayLoaderContent('Verifying your pincode ' + userPincode);
@@ -457,58 +422,14 @@ export default function SignUp(props) {
         }
     }
 
-    const closeReferalBottomsheet = () => {
-        setReferalBottomSheetVisible(false);
-        setIsVisibleBottomSheet(true);
-    }
-
-    const verifyReferalCode = () => {
-        if (!referalCodeVerified) {
-            setShowReferalMsg(false);
-            setReferalMsgColor('red');
-            if (userReferalCode.length === 0) {
-                setShowReferalMsg(true);
-                setReferalMsg("Please Enter Referal Code");
-            }
-            else if (userReferalCode.length !== 10) {
-                setShowReferalMsg(true);
-                setReferalMsg("Invalid Referal Code");
-            } else {
-                const phoneNumber = phoneDecoderForReferal(userReferalCode);
-                setReferalPhoneNumber(phoneNumber);
-                if (mobileRegex.test(phoneNumber) && phoneNumber !== userPhone) {
-                    setReferalCodeVerified(false);
-                    setOvelayLoaderContent('Verifying the referal code...');
-                    setShowOvelayLoader(true);
-                    const userDocRef = doc(firestore, 'Users', phoneNumber, "Personal Details", "Data");
-                    getDoc(userDocRef)
-                        .then((docSnapshot) => {
-                            console.log(docSnapshot.data());
-                            setShowOvelayLoader(false);
-                            setShowReferalMsg(true);
-                            if (docSnapshot.exists()) {
-                                const userData = docSnapshot.data();
-                                console.log('Document exists:', userData);
-                                setReferalMsg("Referal Code Verified");
-                                setReferalMsgColor('green');
-                                setReferalCodeVerified(true);
-                            } else {
-                                console.log('Document does not exist');
-                                setReferalMsg("Wrong Referal Code...");
-                            }
-                        })
-                        .catch((error) => {
-                            setShowOvelayLoader(false);
-                            Toast(error.message, true, 4000);
-                        });
-                } else {
-                    setShowReferalMsg(true);
-                    setReferalMsg("Invalid Referal Code");
-                }
-            }
-        } else {
-            closeReferalBottomsheet()
-        }
+    const Toast = (message, errorStatus = true, timeout = 2000, position = 'top') => {
+        let content = { "message": message, "errorStatus": errorStatus, "timeout": timeout, "position": position };
+        setToastContent(content);
+        console.log(content);
+        setIsToastVisible(true);
+        setTimeout(() => {
+            setIsToastVisible(false);
+        }, timeout);
     }
 
     const checkUserExistance = () => {
@@ -520,7 +441,7 @@ export default function SignUp(props) {
                 setShowOvelayLoader(false);
                 if (result.data()) {
                     setShowOvelayLoader(false);
-                    Toast("This phone number is already registered. Please log in or use a different phone number.", true, 5000);
+                    Toast("This phone number is already registered with this app.", true, 5000);
                 } else {
                     setShowOvelayLoader(false);
                     // sendOTPtoUserMobile();
@@ -536,18 +457,13 @@ export default function SignUp(props) {
 
     const handleSubmit = async () => {
         setUserModifiedEmail(userEmail.replace(/\./g, "-"))
-        setShowReferalMsg(false);
-        setReferalCodeVerified(false);
-        setUserReferalCode('');
-        if (userFirstName.length < 3) {
+        if (userFirstName.length < 4) {
             Toast("Enter Valid First Name", undefined, undefined, 'top');
         } else if (userLastName.length < 1) {
             Toast("Enter Valid Last Name");
         } else if (!mobileRegex.test(userPhone)) {
             Toast("Enter Valid Mobile Number");
-        } else if (userDOB.toLocaleDateString() === new Date().toLocaleDateString()){
-            Toast("Please Select your Date of Birth");
-        }else if (!emailRegex.test(userEmail)) {
+        } else if (!emailRegex.test(userEmail)) {
             Toast("Enter Valid Email ID");
         } else if (!passwordRegex.test(userPassword)) {
             Toast("Enter Valid Password As Per Requirements");
@@ -566,7 +482,7 @@ export default function SignUp(props) {
             const lastTwoChars = userPassword.substring(len - 1);
             const mask = '*'.repeat(len - 4);
             setUserMaskedPassword(`${firstTwoChars}${mask}${lastTwoChars}`);
-            setReferalBottomSheetVisible(true);
+            setIsVisibleBottomSheet(true);
         }
     }
 
@@ -647,13 +563,13 @@ export default function SignUp(props) {
         }
     };
 
+
     const storeUserDetailsInFirebase = async () => {
         setShowOTPOvelay(false);
         setOvelayLoaderContent('Storing your details in Database...');
         setShowOvelayLoader(true);
         const encodedPassword = passwordEncoder(userPassword);
         try {
-
             getDoc(doc(firestore, "Connections", "Data"))
                 .then((result) => {
                     setShowOvelayLoader(false);
@@ -662,26 +578,21 @@ export default function SignUp(props) {
                         connectionArray = result.data()['0'];
                     }
                     console.log(connectionArray);
-                    if (referalCodeVerified) {
-                        connectionArray = updateArray(connectionArray, referalPhoneNumber, userPhone);
-                    } else {
-                        connectionArray = updateArray(connectionArray, userPhone);
-                    }
+        
+                    connectionArray = updateArray(connectionArray, referalPhoneNumber, userPhone);
+                    connectionArray = updateArray(connectionArray, userPhone);
 
                     const userDocRef = doc(firestore, "Users", userPhone);
                     const personalDetailsDocRef = doc(userDocRef, "Personal Details", "Data");
                     const addressDocRef = doc(userDocRef, "Address", "Data");
-                    const connectionDocref = doc(firestore, "Connections", "Data");
+                    const connectionDocref=doc(firestore,"Connections","Data");
                     let personalConnectionDocRef = null;
-                    if (referalCodeVerified) {
-                        personalConnectionDocRef = doc(userDocRef, 'Connections', 'Under');
-                    }
+                    personalConnectionDocRef = doc(userDocRef, 'Connections', 'Under');
 
                     const personalDetailsData = {
                         FirstName: userFirstName,
                         LastName: userLastName,
                         Phone: userPhone,
-                        DOB:userDOB,
                         Gender: userGender,
                         Mail: userEmail,
                         Password: encodedPassword,
@@ -700,25 +611,24 @@ export default function SignUp(props) {
                     const managerConnection = {
                         [userPhone]: userPhone
                     }
-                    const connectionsData = {
-                        "0": connectionArray
+                    const connectionsData={
+                        "0":connectionArray
                     }
                     const batch = writeBatch(firestore);
                     batch.set(personalDetailsDocRef, personalDetailsData);
                     batch.set(addressDocRef, addressData);
-                    if (referalCodeVerified) {
-                        batch.set(personalConnectionDocRef, personalConnection);
-                    }
-                    batch.set(connectionDocref, connectionsData);
+                    batch.set(personalConnectionDocRef, personalConnection);
+                    
+                    batch.set(connectionDocref,connectionsData);
 
                     batch.commit()
                         .then(() => {
                             setShowOvelayLoader(false);
-                            Toast('Your account has been created successfully...', false, undefined, 'top')
-                            // const timer = setTimeout(() => {
-                            //     openIndexPage()
-                            // }, 3000);
-                            // return () => clearTimeout(timer);
+                            Toast('Account has been created successfully and added under your connection.', false,5000)
+                            const timer = setTimeout(() => {
+                                openInvitePage()
+                            }, 2000);
+                            return () => clearTimeout(timer);
                         })
                         .catch((error) => {
                             setShowOvelayLoader(false);
@@ -739,22 +649,18 @@ export default function SignUp(props) {
         }
     }
 
-    const openIndexPage = () => {
-        navigation.reset({
-            index: 0,
-            routes: [{ name: 'Index' }],
-        });
+    const openInvitePage = () => {
+        navigation.goBack();
     }
-
 
     return (
         <View>
 
             {isToastVisible && <CustomToast content={toastContent} handleToastVisible={() => setIsToastVisible(false)} />}
             {showOvelayLoader && <OverlayLoader content={ovelayLoaderContent} />}
-            {showOTPOvelay && <OTPVerificationOverlay setShowOTPOvelay={() => setShowOTPOvelay(false)} phone={userPhone}
-                otpVerifyButtonDisabled={otpVerifyButtonDisabled} setEntertedOtp={(text) => setEntertedOtp(text)}
-                verifyOTP={() => verifyOTP()} sendOTPtoUserMobile={() => sendOTPtoUserMobile()} />}
+            {showOTPOvelay && <OTPVerificationOverlay setShowOTPOvelay={()=>setShowOTPOvelay(false)} phone={userPhone}
+            otpVerifyButtonDisabled={otpVerifyButtonDisabled} setEntertedOtp={(text)=>setEntertedOtp(text)}
+            verifyOTP={()=>verifyOTP()} sendOTPtoUserMobile={()=>sendOTPtoUserMobile()}/>}
 
             <ScrollView>
                 <View>
@@ -797,35 +703,7 @@ export default function SignUp(props) {
                                     onChangeText={(text) => setUserPhone(text)}
                                     value={userPhone}
                                     rightIcon={<Icon name={userPhoneSuccessIcon} type="feather" color={userPhoneSuccessIconColor} />}
-
                                 />
-
-                                <Text style={Styles.textComponetStyle}>Date of Birth</Text>
-                                <TouchableOpacity
-                                    onPressIn={() => setShowDatePicker(true)}
-                                    style={Styles.userDOBContainer}>
-
-                                    <Icon name="calendar" type='feather' color={appColors.basicRed}
-                                        />
-                                    <View style={Styles.userDOBTextContainer}>
-                                        <Text style={Styles.userDOBText}>
-                                            {userDOB.toLocaleDateString()}
-                                        </Text>
-                                    </View>
-                                    <Icon name={userDOBSuccessIcon} type="feather" color={userDOBSuccessIconColor}/>
-
-                                </TouchableOpacity>
-
-                                {showDatePicker &&
-                                    <DateTimePicker
-                                        value={userDOB}
-                                        mode="date"
-                                        display="default"
-                                        is24Hour={true}
-                                        onChange={handleDateChange}
-                                        maximumDate={new Date()}
-                                    />}
-
                                 <Text style={Styles.textComponetStyle}>Gender</Text>
                                 <ButtonGroup buttons={genderButtons}
                                     selectedIndex={genderSelectedIndex}
@@ -974,37 +852,6 @@ export default function SignUp(props) {
 
                             </View>
 
-                            <BottomSheet isVisible={referalBottomSheetVisible}>
-                                <View style={Styles.referalContainer}>
-                                    <Text onPress={() => closeReferalBottomsheet()} on style={Styles.referalCloseButton}>X</Text>
-                                    <Text style={Styles.referalTitle}>Having Referal Code?</Text>
-                                    <Text style={Styles.referalMsg}>
-                                        Explore more connection and exicting rewards with by adding referal code. You will get more benifits while you are in under one connection.
-                                    </Text>
-                                    {showReferalMsg &&
-                                        <Text style={{ ...Styles.referalCondition, color: referalMsgColor }}>{referalMsg}</Text>
-                                    }
-                                    <Input
-                                        placeholder='Referal code'
-                                        style={Styles.input}
-                                        inputContainerStyle={Styles.referalInputContainer}
-                                        labelStyle={Styles.lableStyle}
-                                        inputStyle={Styles.referalInput}
-                                        onChangeText={(text) => setUserReferalCode(text.trim())}
-                                        value={userReferalCode}
-                                        disabled={referalCodeVerified}
-
-                                    />
-                                    <Button
-                                        title={referalCodeVerified ? 'SIGN UP' : 'VERIFY'}
-                                        icon={<Icon name={referalCodeVerified ? 'arrow-right' : 'check-circle'} type="feather" color='white' style={Styles.referalButtonIcon} />}
-                                        loading={false} buttonStyle={Styles.referalVerifyButton}
-                                        onPress={() => verifyReferalCode()}
-                                        containerStyle={Styles.referalVerifyButtonContainer}
-                                    />
-                                </View>
-                            </BottomSheet>
-
                             <BottomSheet isVisible={isVisibleBottomSheet}>
                                 {bottomSheetList.map((l, i) => (
                                     <ListItem key={i} containerStyle={l.containerStyle} onPress={l.onPress}>
@@ -1020,15 +867,17 @@ export default function SignUp(props) {
 
                 </View>
             </ScrollView>
-            <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
 
+            
+            <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+                
                 <View style={Styles.buttonViewContainer} >
+                    
                     <Button title='REGISTER'
                         icon={<Icon name='arrow-right' type='feather' color='white' style={Styles.buttonIcon} />}
                         iconPosition='right'
                         loading={false} buttonStyle={Styles.button}
                         onPress={handleSubmit}
-                        // onPress={storeUserDetailsInFirebase}
                         containerStyle={Styles.buttonContainer}
                     />
 

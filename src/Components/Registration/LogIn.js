@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Keyboard, ScrollView, TouchableWithoutFeedback, View } from "react-native";
 import { Button, Icon,  Input, Text } from "react-native-elements";
 import { useNavigation } from '@react-navigation/native';
@@ -22,9 +22,16 @@ import CustomToast from "../Features/CustomToast";
 import OverlayLoader from "../Features/OverlayLoader";
 
 
-export default function LogIn(props) {
+const LogIn=()=> {
+    const auth = getAuth();
+    const navigation = useNavigation();
+    const dispatch = useDispatch();
+    const userPersonalDataRedux = useSelector((state) => state.UserProfileReducer.personal);
+    console.log("login redux",userPersonalDataRedux);
+
+
     const [userPhone, setUserPhone] = useState('6379185147');
-    const [userPassword, setUserPassword] = useState('9786@RArunMP');
+    const [userPassword, setUserPassword] = useState('9786@RArun');
 
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [passwordEyeIcon, setPasswordEyeIcon] = useState('eye-off');
@@ -69,22 +76,6 @@ export default function LogIn(props) {
     ]
     ), []);
 
-    const auth = getAuth();
-    const navigation = useNavigation();
-    const dispatch = useDispatch();
-    const userPersonalDataRedux = useSelector((state) => state.UserProfileReducer.personal);
-
-    useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-            if (user) {
-                console.log("Login:Already signed In")
-            } else {
-                console.log('No user is signed in');
-            }
-        });
-        return () => unsubscribe();
-    }, [])
-
     useEffect(() => {
         if (passwordVisible) {
             setPasswordEyeIcon('eye');
@@ -92,8 +83,6 @@ export default function LogIn(props) {
             setPasswordEyeIcon('eye-off');
         }
     }, [passwordVisible]);
-
-    
 
     const Toast = (message, errorStatus = true, timeout = 2500, position = 'top') => {
         let content = { "message": message, "errorStatus": errorStatus, "timeout": timeout, "position": position };
@@ -103,8 +92,9 @@ export default function LogIn(props) {
             setIsToastVisible(false);
         }, timeout);
     }
+    
 
-    const LogInWithEmailFun = async () => {
+    const LogInWithPhonePasswordFun = async () => {
         if (!mobileRegex.test(userPhone)) {
             Toast('Please enter a valid phone number.');
         } else if (!passwordRegex.test(userPassword)) {
@@ -142,8 +132,8 @@ export default function LogIn(props) {
                     })
                     .catch((error) => {
                         setShowOvelayLoader(false);
-                        console.log(error);
                         Toast(error.message, true, 5000);
+                        console.log(error);
                     })
             }
         }
@@ -167,7 +157,6 @@ export default function LogIn(props) {
     return (
         <Provider>
             <View>
-
                 {isToastVisible && <CustomToast content={toastContent} handleToastVisible={() => setIsToastVisible(false)} />}
                 {showOvelayLoader && <OverlayLoader content={ovelayLoaderContent} />}
                 <ScrollView>
@@ -219,7 +208,7 @@ export default function LogIn(props) {
                                     loading={false}
                                     buttonStyle={Styles.button}
                                     titleStyle={Styles.buttonTitleStyle}
-                                    onPress={LogInWithEmailFun}
+                                    onPress={LogInWithPhonePasswordFun}
                                 />
 
                                 <Text style={Styles.privacyPolicy}>
@@ -245,3 +234,5 @@ export default function LogIn(props) {
     )
 
 }
+
+export default LogIn;

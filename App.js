@@ -8,7 +8,7 @@ const auth = initializeAuth(app, {
   persistence: getReactNativePersistence(ReactNativeAsyncStorage)
 });
 
-import React from "react";
+import React, { createContext, useEffect, useState } from "react";
 import { NavigationContainer } from '@react-navigation/native'
 import { createStackNavigator } from '@react-navigation/stack'
 
@@ -24,29 +24,52 @@ import ForgotPassword from "./src/Components/Registration/ForgotPassword";
 import basicStrings from './src/Strings/basics.json'
 import { View } from "react-native";
 import appColors from './src/Others/appColors.json'
+import AddConnection from "./src/Components/IndexScreens/Invite/AddConnection";
+import NoInternetOverlay from "./src/Components/Features/NoInternetOverlay";
+
+import { checkInternetConnection } from "./src/Others/InternetConnectionStatus";
 
 const Stack = createStackNavigator();
 
-export default function App() {
+const App=()=> {
+
+  const [isInternetAvailable, setIsInternetAvailable]=useState(false);
+
+  // useEffect(()=>{
+
+  //   const interval= setInterval( async()=>{
+  //     let networkStatus = await checkInternetConnection();
+  //     if (!networkStatus) {
+  //       setIsInternetAvailable(true); 
+  //     }else{
+  //       setIsInternetAvailable(false); 
+  //     }
+  //   },3000);
+
+  //   return ()=>{
+  //     clearInterval(interval);
+  //   }
+
+  // },[]);
+
 
   return (
     <View style={{flex:1}}>
       <Provider store={Store}>
       <NavigationContainer>
+      { isInternetAvailable && <NoInternetOverlay closeInternetOverlay={()=>setIsInternetAvailable(false)}/> }
         <Stack.Navigator initialRouteName="LogIn">
-          <Stack.Screen name="Index" component={Index} options={{ headerShown: false }}/>
-          <Stack.Screen name="LogIn" component={LogIn} options={{ headerTitle: basicStrings.appName, headerStyle: { backgroundColor: appColors.basicRed}, headerTintColor:'white' }} />
+          <Stack.Screen name="Index" component={Index} options={({ navigation})=>({ title:"Arun", headerShown:false, Toast:()=>Toast()})}/>
+          <Stack.Screen name="LogIn" component={LogIn} options={{ headerTitle: basicStrings.appName, headerStyle: { backgroundColor: appColors.basicRed}, headerTintColor:'white' }}  />
           <Stack.Screen name="SignUp" component={SignUp} options={{ headerTitle: 'Create New Account', headerStyle: { backgroundColor: appColors.basicRed } , headerTintColor:'white'}} />
           <Stack.Screen name="Forgot Password" component={ForgotPassword} options={{ headerTitle: 'Reset Password', headerStyle: { backgroundColor: appColors.basicRed }, headerTintColor:'white' }} />
-          <Stack.Screen name="UserProfileCreation" component={UserProfileCreation} options={{ headerShown: false }} />
+          <Stack.Screen name="Invite Add Connection" component={AddConnection} options={{ headerTitle: 'Add Connection', headerStyle: { backgroundColor: appColors.basicRed }, headerTintColor:'white' }}/>
         </Stack.Navigator>
       </NavigationContainer>
-  </Provider>
+    </Provider>
     </View>
-    
-
-
   );
-}
+};
 
 
+export {App as default}

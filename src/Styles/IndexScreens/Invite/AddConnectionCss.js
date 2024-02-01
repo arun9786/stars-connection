@@ -1,5 +1,5 @@
 import { StyleSheet } from "react-native";
-import appColors from '../../Others/appColors.json'
+import appColors from '../../../Others/appColors.json'
 
 export const Styles=StyleSheet.create({
     contaier:{
@@ -12,8 +12,8 @@ export const Styles=StyleSheet.create({
         borderColor:appColors.basicRed,
         borderBottomWidth:2,
         borderRadius:8,
-        paddingLeft:8,
-        paddingRight:8,
+        paddingLeft:7,
+        paddingRight:7,
     },
     input:{
         paddingLeft:10,
@@ -29,27 +29,6 @@ export const Styles=StyleSheet.create({
         textAlign:'right',
         marginRight:10,
         fontSize:16,
-    },
-    userDOBContainer:{
-        flexDirection: 'row', 
-        borderColor: appColors.basicRed, 
-        borderWidth: 2,                                
-        paddingLeft: 8, 
-        paddingRight: 8, 
-        padding: 12, 
-        marginLeft: 10, 
-        marginRight: 10, 
-        borderRadius: 8,
-        marginBottom: 25,
-    },
-    userDOBTextContainer:{
-        flex: 1, 
-        justifyContent: 'center', 
-        alignItems: 'flex-start', 
-        marginLeft:15
-    },
-    userDOBText:{
-        fontSize:18
     },
     buttonGroupContainer:{
         borderWidth:2,
@@ -155,20 +134,18 @@ export const Styles=StyleSheet.create({
         textAlign:'center',
         fontWeight:'bold',
         color:appColors.basicRed,
-        fontSize:21,       
+        fontSize:21,        
     },
     referalMsg:{
         marginLeft:15,
         marginRight:15,
-        marginTop:9,
-        fontSize:15,
+        marginTop:3,
         fontStyle:'italic',
     },
     referalCondition:{
         textAlign:'center',
         marginTop:5,
         fontSize:17,
-        fontStyle:'italic'
     },
     referalInputContainer:{
         borderWidth:1,
@@ -192,10 +169,10 @@ export const Styles=StyleSheet.create({
         fontSize:19,
         borderWidth:1,
         borderColor:'#bfbcbb',
+        margin:8,
         backgroundColor:appColors.basicRed,
         borderRadius:30,
         padding:12,
-        marginBottom:8,
         color:appColors.basicRed
     },
     referalButtonIcon:{

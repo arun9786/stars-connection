@@ -1,50 +1,62 @@
-const fs = require('fs');
-const xlsx = require('xlsx');
-
-// Load the Excel file
-const fileContents = fs.readFileSync('worldcities.xlsx');
-
-// Parse the Excel file
-const workbook = xlsx.read(fileContents, { type: 'buffer' });
-
-const sheetName = workbook.SheetNames[0];
-const worksheet = workbook.Sheets[sheetName];
-
-// Specify the column index you want to extract (e.g., 0 for the first column)
-const columnIndex = 0;
-
-// Define an array to store the column values
-const columnArray = [];
-
-// Loop through the rows of the worksheet
-let i=0;
-let string='';
-for (const cell in worksheet) {
-  const cellAddress = xlsx.utils.decode_cell(cell);
-  if(cellAddress.c===1){
-    columnArray.push(string);
-    string='';
+let ar = [
+  {
+    "6379185147": {
+      "6379185148": "6379185148",
+      "6379185149": {
+        "6379185150": "6379185150",
+        "6379185151": {
+            "9156789012":"9156789012"
+        }
+      }
     }
-  if (cellAddress.c === 1) {
-    const cellValue = worksheet[cell].v;
-    string=cellValue
+  },
+  {
+    "6379185247": {
+      '6379185248': "6379185248",
+      "6379185349": {
+        "6379285150": "6379285150",
+        "6379285151": {
+          "9786639017": "9786639017"
+        }
+      }
+    }
+  },
+  {
+    "9159934457": "9159934457"
   }
-  
+];
+
+function findObjectWithValue(arr, targetValue, childValue) {
+  for (const item of arr) {
+    if(item[targetValue]){
+        item[targetValue][childValue]=childValue;
+        return ar;
+    }else{
+        if (typeof item === 'object') {
+          const result = findObjectWithValue(Object.values(item), targetValue, childValue);
+          if (result) {
+            return;
+          }
+        } else if (item === targetValue) {
+          console.log(arr);
+          return;
+        }
+    }
+  }
 }
 
-
-// The data you want to write to the file
-const data = 'This is the content you want to write to the file.\n';
-
-// The file path where you want to write the data
-const filePath = 'example.txt';
-
-// Use the `fs.writeFile` method to write the data to the file
-fs.writeFile(filePath, JSON.stringify(columnArray), (err) => {
-  if (err) {
-    console.error('Error writing to the file:', err);
+const updateArray = (param1, param2) => {
+  if (param2) {
+    findObjectWithValue(ar,param1,param2);
   } else {
-    console.log('Data has been written to the file successfully.');
+    console.log(param2);
+    let obj={[param1]:param1}
+    ar.push(obj);
   }
-});
-console.log(columnArray);
+};
+// updateArray("9159934458");
+updateArray("9159934459");
+console.log(JSON.stringify(ar));
+// console.log(ar);
+// updateArray("6379185139");
+// console.log(ar);
