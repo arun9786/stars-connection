@@ -20,8 +20,8 @@ const CustomToast = ({ content, handleToastVisible }) => {
   }, [content]);
 
   function capitalizeWords(sentence) {
-    return sentence.replace(/\b\w/g, function (match) {
-      return match.toUpperCase();
+    return sentence.replace(/\b(?:\w+(?:['’]\w+)?)/g, function (match) {
+      return match.charAt(0).toUpperCase() + match.slice(1);
     });
   }
 

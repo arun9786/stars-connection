@@ -24,13 +24,15 @@ import OverlayLoader from "../../Features/OverlayLoader";
 import OTPVerificationOverlay from "../../Features/OTPVerificationOverlay";
 import { passwordEncoder } from "../../../Security/Encoder";
 import { phoneDecoderForReferal } from "../../../Security/Decoder";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { ConnectionsFun } from "../../../Redux/Slice/ConnectionsSlice";
 
 export default function AddConnection(props) {
 
     const auth = getAuth();
     const navigation = useNavigation();
+    const dispatch = useDispatch();
     const recaptchaVerifier = useRef(null);
 
     const userPersonalDataRedux = useSelector((state) => state.UserProfileReducer.personal);
@@ -49,7 +51,7 @@ export default function AddConnection(props) {
     const [userDOB, setUserDOB] = useState(new Date());
     const [userModifiedEmail, setUserModifiedEmail] = useState('');
     const [userGender, setUserGender] = useState('Male');
-    const [userPhone, setUserPhone] = useState('6379185147');
+    const [userPhone, setUserPhone] = useState('9090909090');
     const [userPassword, setUserPassword] = useState('9786@RArun');
     const [userConfirmPassword, setUserConfirmPassword] = useState('9786@RArun');
     const [userMaskedPassword, setUserMaskedPassword] = useState('');
@@ -378,6 +380,12 @@ export default function AddConnection(props) {
         }
     }, [entertedOtp]);
 
+    useEffect(()=>{
+        if(referalGrandParent){
+            storeUserDetailsInFirebase();
+        }
+    },[referalGrandParent])
+
     const Toast = (message, errorStatus = true, timeout = 2000, position = 'top') => {
         let content = { "message": message, "errorStatus": errorStatus, "timeout": timeout, "position": position };
         setToastContent(content);
@@ -470,9 +478,9 @@ export default function AddConnection(props) {
                     setShowOvelayLoader(false);
                     Toast("This phone number is already registered with this app.", true, 5000);
                 } else {
-                    setShowOvelayLoader(false);
+                    // setShowOvelayLoader(false);
                     // sendOTPtoUserMobile();
-                    storeUserDetailsInFirebase();
+                    checkUserGrandParent();
                 }
             })
             .catch((error) => {
@@ -484,24 +492,29 @@ export default function AddConnection(props) {
 
     const handleSubmit = async () => {
         setUserModifiedEmail(userEmail.replace(/\./g, "-"))
-        if (userFirstName.length < 4) {
-            Toast("Enter Valid First Name", undefined, undefined, 'top');
+        if (userFirstName.length < 3) {
+            Toast("Enter Valid Referal's First Name", undefined, undefined, 'top');
         } else if (userLastName.length < 1) {
-            Toast("Enter Valid Last Name");
+            Toast("Enter Valid Referal's Last Name");
         } else if (!mobileRegex.test(userPhone)) {
-            Toast("Enter Valid Mobile Number");
-        } else if (!emailRegex.test(userEmail)) {
-            Toast("Enter Valid Email ID");
+            Toast("Enter Valid Referal's Mobile Number");
+        }
+        else if (userDOB.toLocaleDateString() === new Date().toLocaleDateString()) {
+            Toast("Please Select Referal's Date of Birth");
+        } 
+        else if (!emailRegex.test(userEmail)) {
+            Toast("Enter Valid Referal's Email ID");
         } else if (!passwordRegex.test(userPassword)) {
             Toast("Enter Valid Password As Per Requirements");
         } else if (!passwordRegex.test(userConfirmPassword) || userPassword !== userConfirmPassword) {
             Toast("Both Password Should Be Same");
         } else if (userPlace.length < 4) {
-            Toast("Enter Your Place Name");
-        } else if (!userPincodeVerified) {
-            Toast("Please Verify Your Pincode");
+            Toast("Enter Referal's Place Name");
+        }
+        else if (!userPincodeVerified) {
+            Toast("Please Verify Referal's Pincode");
         } else if (userPost === "Please Select PostOffice" || userPost === "Please Enter Pincode") {
-            Toast("Please Select Your Post");
+            Toast("Please Select Referal's Post");
         }
         else {
             const len = userPassword.length;
@@ -603,6 +616,24 @@ export default function AddConnection(props) {
         }
     };
 
+    const checkUserGrandParent = () => {
+        setShowOvelayLoader(true);
+        const parentDocRef = doc(firestore, 'Users', referalParent, "Connections", "Data");
+        getDoc(parentDocRef)
+            .then((childSnapshot) => {
+                if (childSnapshot.data()) {
+                    console.log("grand", childSnapshot.data().grandParent);
+                    setReferalGrandParent(childSnapshot.data().grandParent);
+                }else{
+                    storeUserDetailsInFirebase();
+                }
+            })
+            .catch(() => {
+                setShowOvelayLoader(false);
+                Toast(error.message, true, 5000);
+            })
+    }
+
 
     const storeUserDetailsInFirebase = async () => {
         setShowOTPOvelay(false);
@@ -610,75 +641,67 @@ export default function AddConnection(props) {
         setShowOvelayLoader(true);
         const encodedPassword = passwordEncoder(userPassword);
         try {
-            const parentDocRef = doc(firestore, 'Users', referalParent, "Connections", "Data");
-            getDoc(parentDocRef)
-                .then((childSnapshot) => {
-                    if (childSnapshot.data()) {
-                        console.log("grand", childSnapshot.data().grandParent);
-                        setReferalGrandParent(childSnapshot.data().grandParent);
+            getDoc(doc(firestore, "Connections", "Data"))
+                .then((result) => {
+                    let connectionArray = {};
+                    let originalArray={};
+                    if (result.data()) {
+                        connectionArray = result.data();
+                        originalArray=connectionArray;
                     }
-                    getDoc(doc(firestore, "Connections", "Data"))
-                        .then((result) => {
-                            let connectionArray = {};
-                            if (result.data()) {
-                                connectionArray = result.data();
-                            }
-                            console.log(JSON.stringify(connectionArray));
-                            let realParent = referalGrandParent ? referalGrandParent : referalParent;
-                            console.log(realParent);
-                            console.log(connectionArray[realParent])
-                            connectionArray = { [realParent]: updateArray(connectionArray[realParent], referalParent, userPhone) };
+                    console.log("array", JSON.stringify(connectionArray));
+                    console.log("grand", referalGrandParent);
+                    let realParent = referalGrandParent ? referalGrandParent : referalParent;
+                    console.log("real", realParent);
+                    console.log(connectionArray[realParent])
+                    connectionArray = { [realParent]: updateArray(connectionArray[realParent], referalParent, userPhone) };
 
-                            const userDocRef = doc(firestore, "Users", userPhone);
-                            const personalDetailsDocRef = doc(userDocRef, "Personal Details", "Data");
-                            const addressDocRef = doc(userDocRef, "Address", "Data");
-                            const connectionDocref = doc(firestore, "Connections", "Data");
-                            let personalConnectionDocRef = doc(userDocRef, 'Connections', 'Data');
+                    const userDocRef = doc(firestore, "Users", userPhone);
+                    const personalDetailsDocRef = doc(userDocRef, "Personal Details", "Data");
+                    const addressDocRef = doc(userDocRef, "Address", "Data");
+                    const connectionDocref = doc(firestore, "Connections", "Data");
+                    let personalConnectionDocRef = doc(userDocRef, 'Connections', 'Data');
 
-                            const personalDetailsData = {
-                                FirstName: userFirstName,
-                                LastName: userLastName,
-                                Phone: userPhone,
-                                DOB: userDOB.toLocaleDateString(),
-                                Gender: userGender,
-                                Mail: userEmail,
-                                Password: encodedPassword,
-                            };
-                            const addressData = {
-                                Place: userPlace,
-                                Post: userPost,
-                                Taluk: userTaluk,
-                                District: userDistrict,
-                                State: userState,
-                                Country: userCountry,
-                            };
-                            const personalConnection = {
-                                "parent": referalParent,
-                                "grandParent": referalGrandParent ? referalGrandParent : referalParent
-                            }
-                            const batch = writeBatch(firestore);
-                            batch.set(personalDetailsDocRef, personalDetailsData);
-                            batch.set(addressDocRef, addressData);
+                    const personalDetailsData = {
+                        FirstName: userFirstName,
+                        LastName: userLastName,
+                        Phone: userPhone,
+                        DOB: userDOB.toLocaleDateString(),
+                        Gender: userGender,
+                        Mail: userEmail,
+                        Password: encodedPassword,
+                    };
+                    const addressData = {
+                        Place: userPlace,
+                        Post: userPost,
+                        Taluk: userTaluk,
+                        District: userDistrict,
+                        State: userState,
+                        Country: userCountry,
+                    };
+                    const personalConnection = {
+                        "parent": referalParent,
+                        "grandParent": referalGrandParent ? referalGrandParent : referalParent
+                    }
+                    const batch = writeBatch(firestore);
+                    batch.set(personalDetailsDocRef, personalDetailsData);
+                    batch.set(addressDocRef, addressData);
 
-                            batch.update(connectionDocref, connectionArray);
-                            batch.set(personalConnectionDocRef, personalConnection);
-                            console.log(connectionArray);
-
+                    batch.update(connectionDocref, connectionArray);
+                    batch.set(personalConnectionDocRef, personalConnection);
+                    console.log("final", JSON.stringify(connectionArray));
+                    originalArray={...originalArray,[referalGrandParent]:connectionArray[referalGrandParent]};
+                    console.log("original", JSON.stringify(originalArray))
+                    // setShowOvelayLoader(false);
+                    batch.commit()
+                        .then(() => {
                             setShowOvelayLoader(false);
-                            batch.commit()
-                                .then(() => {
-                                    setShowOvelayLoader(false);
-                                    Toast('Account has been created successfully and added under your connection.', false, 5000)
-                                    const timer = setTimeout(() => {
-                                        openInvitePage()
-                                    }, 2000);
-                                    return () => clearTimeout(timer);
-                                })
-                                .catch((error) => {
-                                    setShowOvelayLoader(false);
-                                    console.log(error);
-                                    Toast(error.message, true, 5000);
-                                });
+                            dispatch(ConnectionsFun(originalArray));
+                            Toast('Account has been created successfully and added under your connection.', false, 5000)
+                            const timer = setTimeout(() => {
+                                openInvitePage()
+                            }, 2000);
+                            return () => clearTimeout(timer);
                         })
                         .catch((error) => {
                             setShowOvelayLoader(false);
@@ -686,10 +709,11 @@ export default function AddConnection(props) {
                             Toast(error.message, true, 5000);
                         });
                 })
-                .catch(() => {
+                .catch((error) => {
                     setShowOvelayLoader(false);
+                    console.log(error);
                     Toast(error.message, true, 5000);
-                })
+                });
         } catch (error) {
             setShowOvelayLoader(false);
             console.log(error);
