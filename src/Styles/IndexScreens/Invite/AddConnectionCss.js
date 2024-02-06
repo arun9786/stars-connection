@@ -226,4 +226,25 @@ export const Styles=StyleSheet.create({
         color:'white',
         textAlign:'center'
     },
+    userDOBContainer:{
+        flexDirection: 'row', 
+        borderColor: appColors.basicRed, 
+        borderWidth: 2,                                
+        paddingLeft: 8, 
+        paddingRight: 8, 
+        padding: 12, 
+        marginLeft: 10, 
+        marginRight: 10, 
+        borderRadius: 8,
+        marginBottom: 25,
+    },
+    userDOBTextContainer:{
+        flex: 1, 
+        justifyContent: 'center', 
+        alignItems: 'flex-start', 
+        marginLeft:15
+    },
+    userDOBText:{
+        fontSize:18
+    },
 })

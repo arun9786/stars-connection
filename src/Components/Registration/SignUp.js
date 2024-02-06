@@ -9,7 +9,7 @@ import axios from 'axios'
 
 import { getAuth, PhoneAuthProvider, signInWithCredential, } from "firebase/auth";
 import { app } from '../../config/firebase'
-import { setDoc, doc, writeBatch, getDoc } from 'firebase/firestore'
+import { setDoc, doc, writeBatch, getDoc, getDocs, collection, query, where } from 'firebase/firestore'
 import { firestore } from "../../config/firebase";
 import { FirebaseRecaptchaVerifierModal } from "expo-firebase-recaptcha";
 
@@ -109,14 +109,16 @@ export default function SignUp(props) {
     const [isVisibleBottomSheet, setIsVisibleBottomSheet] = useState(false);
 
     const [referalBottomSheetVisible, setReferalBottomSheetVisible] = useState(false);
-    const [userReferalCode, setUserReferalCode] = useState('');
-    const [referalPhoneNumber, setReferalPhoneNumber] = useState('');
+    const [userReferalCode, setUserReferalCode] = useState('X9WB7aNUDa');
     const [referalCodeVerified, setReferalCodeVerified] = useState(false);
     const [showReferalMsg, setShowReferalMsg] = useState(false);
     const [referalMsgColor, setReferalMsgColor] = useState('');
     const [referalMsg, setReferalMsg] = useState('Referal Code Verified');
 
     const [connectionsArray, setConnectionsArray] = useState([]);
+    const [referalParent, setReferalParent] = useState('');
+    const [referalGrandParent, setReferalGrandParent] = useState('');
+
 
 
     const emailRegex = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/;
@@ -202,16 +204,16 @@ export default function SignUp(props) {
         }
     }, [userPhone]);
 
-    useEffect(()=>{
-        if(userDOB.toLocaleDateString()===new Date().toLocaleDateString()){
+    useEffect(() => {
+        if (userDOB.toLocaleDateString() === new Date().toLocaleDateString()) {
             setUserDOBSuccessIcon('x');
             setUserDOBSuccessIconColor('#8c0a1b');
-        }else{
+        } else {
             setUserDOBSuccessIcon('check');
             setUserDOBSuccessIconColor('#238732');
-            
+
         }
-    },[userDOB]);
+    }, [userDOB]);
 
     useEffect(() => {
         if (passwordRegex.test(userPassword)) {
@@ -392,9 +394,9 @@ export default function SignUp(props) {
         if (date !== undefined) {
             setUserDOB(date);
             setShowDatePicker(Platform.OS === 'ios');
-        } 
+        }
     };
-    
+
     const checkGivenPincodeStatus = () => {
         setShowOvelayLoader(true);
         setOvelayLoaderContent('Verifying your pincode ' + userPincode);
@@ -474,24 +476,35 @@ export default function SignUp(props) {
                 setShowReferalMsg(true);
                 setReferalMsg("Invalid Referal Code");
             } else {
-                const phoneNumber = phoneDecoderForReferal(userReferalCode);
-                setReferalPhoneNumber(phoneNumber);
-                if (mobileRegex.test(phoneNumber) && phoneNumber !== userPhone) {
+                const parentPhoneNumber = phoneDecoderForReferal(userReferalCode);
+                console.log(parentPhoneNumber);
+                setReferalParent(parentPhoneNumber);
+                if (mobileRegex.test(parentPhoneNumber) && parentPhoneNumber !== userPhone) {
                     setReferalCodeVerified(false);
                     setOvelayLoaderContent('Verifying the referal code...');
                     setShowOvelayLoader(true);
-                    const userDocRef = doc(firestore, 'Users', phoneNumber, "Personal Details", "Data");
+                    const userDocRef = doc(firestore, 'Users', parentPhoneNumber, "Personal Details", "Data");
                     getDoc(userDocRef)
                         .then((docSnapshot) => {
-                            console.log(docSnapshot.data());
-                            setShowOvelayLoader(false);
-                            setShowReferalMsg(true);
                             if (docSnapshot.exists()) {
-                                const userData = docSnapshot.data();
-                                console.log('Document exists:', userData);
-                                setReferalMsg("Referal Code Verified");
-                                setReferalMsgColor('green');
-                                setReferalCodeVerified(true);
+                                console.log(docSnapshot.data());
+                                const userDocRef = doc(firestore, 'Users', parentPhoneNumber, "Connections", "Data");
+                                getDoc(userDocRef)
+                                    .then((childSnapshot) => {
+                                        console.log("came", childSnapshot.data());
+                                        if (childSnapshot.data()) {
+                                            setReferalGrandParent(childSnapshot.data().grandParent);
+                                        }
+                                        setShowOvelayLoader(false);
+                                        setShowReferalMsg(true);
+                                        setReferalMsg("Referal Code Verified");
+                                        setReferalMsgColor('green');
+                                        setReferalCodeVerified(true);
+                                    })
+                                    .catch(() => {
+                                        console.log('Document does not exist');
+                                        setReferalMsg("Wrong Referal Code...");
+                                    })
                             } else {
                                 console.log('Document does not exist');
                                 setReferalMsg("Wrong Referal Code...");
@@ -539,15 +552,18 @@ export default function SignUp(props) {
         setShowReferalMsg(false);
         setReferalCodeVerified(false);
         setUserReferalCode('');
+        setReferalGrandParent('');
+        setReferalParent('');
         if (userFirstName.length < 3) {
             Toast("Enter Valid First Name", undefined, undefined, 'top');
         } else if (userLastName.length < 1) {
             Toast("Enter Valid Last Name");
         } else if (!mobileRegex.test(userPhone)) {
             Toast("Enter Valid Mobile Number");
-        } else if (userDOB.toLocaleDateString() === new Date().toLocaleDateString()){
+        } 
+        else if (userDOB.toLocaleDateString() === new Date().toLocaleDateString()) {
             Toast("Please Select your Date of Birth");
-        }else if (!emailRegex.test(userEmail)) {
+        } else if (!emailRegex.test(userEmail)) {
             Toast("Enter Valid Email ID");
         } else if (!passwordRegex.test(userPassword)) {
             Toast("Enter Valid Password As Per Requirements");
@@ -555,9 +571,11 @@ export default function SignUp(props) {
             Toast("Both Password Should Be Same");
         } else if (userPlace.length < 4) {
             Toast("Enter Your Place Name");
-        } else if (!userPincodeVerified) {
+        } 
+        else if (!userPincodeVerified) {
             Toast("Please Verify Your Pincode");
-        } else if (userPost === "Please Select PostOffice" || userPost === "Please Enter Pincode") {
+        }
+        else if (userPost === "Please Select PostOffice" || userPost === "Please Enter Pincode") {
             Toast("Please Select Your Post");
         }
         else {
@@ -620,30 +638,43 @@ export default function SignUp(props) {
         }
     }
 
-    function findObjectWithValue(arr, targetValue, childValue) {
-        for (const item of arr) {
-            if (item[targetValue]) {
-                if (typeof item[targetValue] === 'object') {
-                    item[targetValue][childValue] = childValue;
+    function findObjectWithValue(obj, targetValue, childValue) {
+        for (let item in obj) {
+            if (item === targetValue) {
+                if (typeof obj[item] === 'object') {
+                    obj[item][childValue] = childValue;
                 } else {
-                    item[targetValue] = { [childValue]: childValue };
+                    obj = { ...obj, [item]: { [childValue]: childValue } }
+                    return obj;
                 }
-            } else {
-                if (typeof item === 'object') {
-                    findObjectWithValue(Object.values(item), targetValue, childValue);
+            }
+            else {
+                if (typeof obj[item] === 'object') {
+                    let val = findObjectWithValue(obj[item], targetValue, childValue)
+                    obj = { ...obj, [item]: val };
                 }
             }
         }
-        return arr;
+        return obj;
     }
 
-    const updateArray = (ar, param1, param2) => {
-        if (param2) {
-            return findObjectWithValue(ar, param1, param2);
+    const updateArray = (obj, param1, param2) => {
+        if (!referalGrandParent) {
+            let newObj = {};
+            if (typeof obj === 'object') {
+                newObj = { ...obj, [param2]: param2 }
+            } else {
+                newObj = { [param2]: param2 }
+            }
+            return newObj;
         } else {
-            let obj = { [param1]: param1 }
-            ar.push(obj);
-            return ar;
+            if (typeof obj === 'object') {
+                return findObjectWithValue(obj, param1, param2);
+            }
+            else {
+                let obj = { [param2]: param2 }
+                return obj;
+            }
         }
     };
 
@@ -656,16 +687,18 @@ export default function SignUp(props) {
 
             getDoc(doc(firestore, "Connections", "Data"))
                 .then((result) => {
-                    setShowOvelayLoader(false);
-                    let connectionArray = [];
+                    // setShowOvelayLoader(false);
+                    let connectionArray = {};
                     if (result.data()) {
-                        connectionArray = result.data()['0'];
+                        connectionArray = result.data();
                     }
-                    console.log(connectionArray);
                     if (referalCodeVerified) {
-                        connectionArray = updateArray(connectionArray, referalPhoneNumber, userPhone);
+                        let realParent = referalGrandParent ? referalGrandParent : referalParent;
+                        console.log(connectionArray[realParent])
+                        connectionArray ={[realParent]: updateArray(connectionArray[realParent], referalParent, userPhone)};
+                        console.log(connectionArray);
                     } else {
-                        connectionArray = updateArray(connectionArray, userPhone);
+                        connectionArray = { [userPhone]: userPhone };
                     }
 
                     const userDocRef = doc(firestore, "Users", userPhone);
@@ -674,14 +707,14 @@ export default function SignUp(props) {
                     const connectionDocref = doc(firestore, "Connections", "Data");
                     let personalConnectionDocRef = null;
                     if (referalCodeVerified) {
-                        personalConnectionDocRef = doc(userDocRef, 'Connections', 'Under');
+                        personalConnectionDocRef = doc(userDocRef, 'Connections', 'Data');
                     }
 
                     const personalDetailsData = {
                         FirstName: userFirstName,
                         LastName: userLastName,
                         Phone: userPhone,
-                        DOB:userDOB,
+                        DOB: userDOB.toLocaleDateString(),
                         Gender: userGender,
                         Mail: userEmail,
                         Password: encodedPassword,
@@ -695,21 +728,23 @@ export default function SignUp(props) {
                         Country: userCountry,
                     };
                     const personalConnection = {
-                        "phone": referalPhoneNumber
-                    }
-                    const managerConnection = {
-                        [userPhone]: userPhone
-                    }
-                    const connectionsData = {
-                        "0": connectionArray
+                        "parent": referalParent,
+                        "grandParent": referalGrandParent ? referalGrandParent : referalParent
                     }
                     const batch = writeBatch(firestore);
                     batch.set(personalDetailsDocRef, personalDetailsData);
                     batch.set(addressDocRef, addressData);
                     if (referalCodeVerified) {
+                        batch.update(connectionDocref, connectionArray);
                         batch.set(personalConnectionDocRef, personalConnection);
+                    } else {
+                        if(result.data()){
+                            batch.update(connectionDocref, connectionArray);
+                        }else{
+                            batch.set(connectionDocref, connectionArray);
+                        }
                     }
-                    batch.set(connectionDocref, connectionsData);
+                    console.log(connectionArray);
 
                     batch.commit()
                         .then(() => {
@@ -806,13 +841,13 @@ export default function SignUp(props) {
                                     style={Styles.userDOBContainer}>
 
                                     <Icon name="calendar" type='feather' color={appColors.basicRed}
-                                        />
+                                    />
                                     <View style={Styles.userDOBTextContainer}>
                                         <Text style={Styles.userDOBText}>
                                             {userDOB.toLocaleDateString()}
                                         </Text>
                                     </View>
-                                    <Icon name={userDOBSuccessIcon} type="feather" color={userDOBSuccessIconColor}/>
+                                    <Icon name={userDOBSuccessIcon} type="feather" color={userDOBSuccessIconColor} />
 
                                 </TouchableOpacity>
 

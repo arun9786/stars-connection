@@ -25,6 +25,7 @@ import OTPVerificationOverlay from "../../Features/OTPVerificationOverlay";
 import { passwordEncoder } from "../../../Security/Encoder";
 import { phoneDecoderForReferal } from "../../../Security/Decoder";
 import { useSelector } from "react-redux";
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function AddConnection(props) {
 
@@ -33,19 +34,19 @@ export default function AddConnection(props) {
     const recaptchaVerifier = useRef(null);
 
     const userPersonalDataRedux = useSelector((state) => state.UserProfileReducer.personal);
-    const [referalPhoneNumber, setReferalPhoneNumber] = useState('');
     // if(userPersonalDataRedux){
-    //     setReferalPhoneNumber(userPersonalDataRedux.Phone);
+    //     setReferalParent(userPersonalDataRedux.Phone);
     // }
 
-    useEffect(()=>{
-        setReferalPhoneNumber(userPersonalDataRedux.Phone);
-    },[userPersonalDataRedux]);
-    
+    useEffect(() => {
+        setReferalParent(userPersonalDataRedux.Phone);
+    }, [userPersonalDataRedux]);
+
 
     const [userFirstName, setUserFirstName] = useState('Arun');
     const [userLastName, setUserLastName] = useState('R');
     const [userEmail, setUserEmail] = useState('arunr090601@gmail.com');
+    const [userDOB, setUserDOB] = useState(new Date());
     const [userModifiedEmail, setUserModifiedEmail] = useState('');
     const [userGender, setUserGender] = useState('Male');
     const [userPhone, setUserPhone] = useState('6379185147');
@@ -68,6 +69,9 @@ export default function AddConnection(props) {
     const [userEmailSuccessIconColor, setUserEmailSuccessIconColor] = useState('');
     const [userPhoneSuccessIcon, setUserPhoneSuccessIcon] = useState('');
     const [userPhoneSuccessIconColor, setUserPhoneSuccessIconColor] = useState('');
+    const [showDatePicker, setShowDatePicker] = useState(false);
+    const [userDOBSuccessIcon, setUserDOBSuccessIcon] = useState('');
+    const [userDOBSuccessIconColor, setUserDOBSuccessIconColor] = useState('');
     const [passwordVisible, setPasswordVisible] = useState(true);
     const [passwordEyeIcon, setPasswordEyeIcon] = useState('eye');
     const [userPasswordSuccessIcon, setUserPasswordSuccessIcon] = useState('');
@@ -112,9 +116,12 @@ export default function AddConnection(props) {
     const [otpVerifyButtonDisabled, setOtpVerifyButtonDisabled] = useState(true);
     const [otpCredentials, setOtpCredentials] = useState(true);
 
-    
+
     const [isVisibleBottomSheet, setIsVisibleBottomSheet] = useState(false);
-    
+
+    const [referalParent, setReferalParent] = useState('');
+    const [referalGrandParent, setReferalGrandParent] = useState('');
+
 
     const emailRegex = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/;
     const mobileRegex = /^[6-9]\d{9}$/;
@@ -130,7 +137,7 @@ export default function AddConnection(props) {
         //     iconColor: 'black'
         // },
         {
-            title: 'Name: ' + userFirstName + ' ' + userLastName + '\nEmail Id: ' + userEmail + '\nGender: ' + userGender + "\nPhone: +91" + userPhone 
+            title: 'Name: ' + userFirstName + ' ' + userLastName + '\nEmail Id: ' + userEmail + '\nGender: ' + userGender + "\nPhone: +91" + userPhone
                 + "\nAddress: " + (userPlace + ", " + userPost + ", " + userTaluk + ", " + userDistrict + ", " + userState + ", " + userCountry + "."),
             containerStyle: Styles.bottomSheetTextContentContainer,
             titleStyle: Styles.bottomSheetTextContent,
@@ -194,6 +201,17 @@ export default function AddConnection(props) {
             setUserPhoneSuccessIconColor('#8c0a1b');
         }
     }, [userPhone]);
+
+    useEffect(() => {
+        if (userDOB.toLocaleDateString() === new Date().toLocaleDateString()) {
+            setUserDOBSuccessIcon('x');
+            setUserDOBSuccessIconColor('#8c0a1b');
+        } else {
+            setUserDOBSuccessIcon('check');
+            setUserDOBSuccessIconColor('#238732');
+
+        }
+    }, [userDOB]);
 
     useEffect(() => {
         if (passwordRegex.test(userPassword)) {
@@ -360,6 +378,25 @@ export default function AddConnection(props) {
         }
     }, [entertedOtp]);
 
+    const Toast = (message, errorStatus = true, timeout = 2000, position = 'top') => {
+        let content = { "message": message, "errorStatus": errorStatus, "timeout": timeout, "position": position };
+        setToastContent(content);
+        console.log(content);
+        setIsToastVisible(true);
+        setTimeout(() => {
+            setIsToastVisible(false);
+        }, timeout);
+    }
+
+    const handleDateChange = (event, date) => {
+        console.log("hello")
+        setShowDatePicker(false);
+        if (date !== undefined) {
+            setUserDOB(date);
+            setShowDatePicker(Platform.OS === 'ios');
+        }
+    };
+
     const checkGivenPincodeStatus = () => {
         setShowOvelayLoader(true);
         setOvelayLoaderContent('Verifying your pincode ' + userPincode);
@@ -420,16 +457,6 @@ export default function AddConnection(props) {
                 setUserCountrySuccessIconColor('#238732');
             }
         }
-    }
-
-    const Toast = (message, errorStatus = true, timeout = 2000, position = 'top') => {
-        let content = { "message": message, "errorStatus": errorStatus, "timeout": timeout, "position": position };
-        setToastContent(content);
-        console.log(content);
-        setIsToastVisible(true);
-        setTimeout(() => {
-            setIsToastVisible(false);
-        }, timeout);
     }
 
     const checkUserExistance = () => {
@@ -536,30 +563,43 @@ export default function AddConnection(props) {
         }
     }
 
-    function findObjectWithValue(arr, targetValue, childValue) {
-        for (const item of arr) {
-            if (item[targetValue]) {
-                if (typeof item[targetValue] === 'object') {
-                    item[targetValue][childValue] = childValue;
+    function findObjectWithValue(obj, targetValue, childValue) {
+        for (let item in obj) {
+            if (item === targetValue) {
+                if (typeof obj[item] === 'object') {
+                    obj[item][childValue] = childValue;
                 } else {
-                    item[targetValue] = { [childValue]: childValue };
+                    obj = { ...obj, [item]: { [childValue]: childValue } }
+                    return obj;
                 }
-            } else {
-                if (typeof item === 'object') {
-                    findObjectWithValue(Object.values(item), targetValue, childValue);
+            }
+            else {
+                if (typeof obj[item] === 'object') {
+                    let val = findObjectWithValue(obj[item], targetValue, childValue)
+                    obj = { ...obj, [item]: val };
                 }
             }
         }
-        return arr;
+        return obj;
     }
 
-    const updateArray = (ar, param1, param2) => {
-        if (param2) {
-            return findObjectWithValue(ar, param1, param2);
+    const updateArray = (obj, param1, param2) => {
+        if (!referalGrandParent) {
+            let newObj = {};
+            if (typeof obj === 'object') {
+                newObj = { ...obj, [param2]: param2 }
+            } else {
+                newObj = { [param2]: param2 }
+            }
+            return newObj;
         } else {
-            let obj = { [param1]: param1 }
-            ar.push(obj);
-            return ar;
+            if (typeof obj === 'object') {
+                return findObjectWithValue(obj, param1, param2);
+            }
+            else {
+                let obj = { [param2]: param2 }
+                return obj;
+            }
         }
     };
 
@@ -570,65 +610,75 @@ export default function AddConnection(props) {
         setShowOvelayLoader(true);
         const encodedPassword = passwordEncoder(userPassword);
         try {
-            getDoc(doc(firestore, "Connections", "Data"))
-                .then((result) => {
-                    setShowOvelayLoader(false);
-                    let connectionArray = [];
-                    if (result.data()) {
-                        connectionArray = result.data()['0'];
+            const parentDocRef = doc(firestore, 'Users', referalParent, "Connections", "Data");
+            getDoc(parentDocRef)
+                .then((childSnapshot) => {
+                    if (childSnapshot.data()) {
+                        console.log("grand", childSnapshot.data().grandParent);
+                        setReferalGrandParent(childSnapshot.data().grandParent);
                     }
-                    console.log(connectionArray);
-        
-                    connectionArray = updateArray(connectionArray, referalPhoneNumber, userPhone);
-                    connectionArray = updateArray(connectionArray, userPhone);
+                    getDoc(doc(firestore, "Connections", "Data"))
+                        .then((result) => {
+                            let connectionArray = {};
+                            if (result.data()) {
+                                connectionArray = result.data();
+                            }
+                            console.log(JSON.stringify(connectionArray));
+                            let realParent = referalGrandParent ? referalGrandParent : referalParent;
+                            console.log(realParent);
+                            console.log(connectionArray[realParent])
+                            connectionArray = { [realParent]: updateArray(connectionArray[realParent], referalParent, userPhone) };
 
-                    const userDocRef = doc(firestore, "Users", userPhone);
-                    const personalDetailsDocRef = doc(userDocRef, "Personal Details", "Data");
-                    const addressDocRef = doc(userDocRef, "Address", "Data");
-                    const connectionDocref=doc(firestore,"Connections","Data");
-                    let personalConnectionDocRef = null;
-                    personalConnectionDocRef = doc(userDocRef, 'Connections', 'Under');
+                            const userDocRef = doc(firestore, "Users", userPhone);
+                            const personalDetailsDocRef = doc(userDocRef, "Personal Details", "Data");
+                            const addressDocRef = doc(userDocRef, "Address", "Data");
+                            const connectionDocref = doc(firestore, "Connections", "Data");
+                            let personalConnectionDocRef = doc(userDocRef, 'Connections', 'Data');
 
-                    const personalDetailsData = {
-                        FirstName: userFirstName,
-                        LastName: userLastName,
-                        Phone: userPhone,
-                        Gender: userGender,
-                        Mail: userEmail,
-                        Password: encodedPassword,
-                    };
-                    const addressData = {
-                        Place: userPlace,
-                        Post: userPost,
-                        Taluk: userTaluk,
-                        District: userDistrict,
-                        State: userState,
-                        Country: userCountry,
-                    };
-                    const personalConnection = {
-                        "phone": referalPhoneNumber
-                    }
-                    const managerConnection = {
-                        [userPhone]: userPhone
-                    }
-                    const connectionsData={
-                        "0":connectionArray
-                    }
-                    const batch = writeBatch(firestore);
-                    batch.set(personalDetailsDocRef, personalDetailsData);
-                    batch.set(addressDocRef, addressData);
-                    batch.set(personalConnectionDocRef, personalConnection);
-                    
-                    batch.set(connectionDocref,connectionsData);
+                            const personalDetailsData = {
+                                FirstName: userFirstName,
+                                LastName: userLastName,
+                                Phone: userPhone,
+                                DOB: userDOB.toLocaleDateString(),
+                                Gender: userGender,
+                                Mail: userEmail,
+                                Password: encodedPassword,
+                            };
+                            const addressData = {
+                                Place: userPlace,
+                                Post: userPost,
+                                Taluk: userTaluk,
+                                District: userDistrict,
+                                State: userState,
+                                Country: userCountry,
+                            };
+                            const personalConnection = {
+                                "parent": referalParent,
+                                "grandParent": referalGrandParent ? referalGrandParent : referalParent
+                            }
+                            const batch = writeBatch(firestore);
+                            batch.set(personalDetailsDocRef, personalDetailsData);
+                            batch.set(addressDocRef, addressData);
 
-                    batch.commit()
-                        .then(() => {
+                            batch.update(connectionDocref, connectionArray);
+                            batch.set(personalConnectionDocRef, personalConnection);
+                            console.log(connectionArray);
+
                             setShowOvelayLoader(false);
-                            Toast('Account has been created successfully and added under your connection.', false,5000)
-                            const timer = setTimeout(() => {
-                                openInvitePage()
-                            }, 2000);
-                            return () => clearTimeout(timer);
+                            batch.commit()
+                                .then(() => {
+                                    setShowOvelayLoader(false);
+                                    Toast('Account has been created successfully and added under your connection.', false, 5000)
+                                    const timer = setTimeout(() => {
+                                        openInvitePage()
+                                    }, 2000);
+                                    return () => clearTimeout(timer);
+                                })
+                                .catch((error) => {
+                                    setShowOvelayLoader(false);
+                                    console.log(error);
+                                    Toast(error.message, true, 5000);
+                                });
                         })
                         .catch((error) => {
                             setShowOvelayLoader(false);
@@ -636,12 +686,10 @@ export default function AddConnection(props) {
                             Toast(error.message, true, 5000);
                         });
                 })
-                .catch((error) => {
+                .catch(() => {
                     setShowOvelayLoader(false);
-                    console.log(error);
                     Toast(error.message, true, 5000);
-                });
-
+                })
         } catch (error) {
             setShowOvelayLoader(false);
             console.log(error);
@@ -658,9 +706,9 @@ export default function AddConnection(props) {
 
             {isToastVisible && <CustomToast content={toastContent} handleToastVisible={() => setIsToastVisible(false)} />}
             {showOvelayLoader && <OverlayLoader content={ovelayLoaderContent} />}
-            {showOTPOvelay && <OTPVerificationOverlay setShowOTPOvelay={()=>setShowOTPOvelay(false)} phone={userPhone}
-            otpVerifyButtonDisabled={otpVerifyButtonDisabled} setEntertedOtp={(text)=>setEntertedOtp(text)}
-            verifyOTP={()=>verifyOTP()} sendOTPtoUserMobile={()=>sendOTPtoUserMobile()}/>}
+            {showOTPOvelay && <OTPVerificationOverlay setShowOTPOvelay={() => setShowOTPOvelay(false)} phone={userPhone}
+                otpVerifyButtonDisabled={otpVerifyButtonDisabled} setEntertedOtp={(text) => setEntertedOtp(text)}
+                verifyOTP={() => verifyOTP()} sendOTPtoUserMobile={() => sendOTPtoUserMobile()} />}
 
             <ScrollView>
                 <View>
@@ -704,6 +752,36 @@ export default function AddConnection(props) {
                                     value={userPhone}
                                     rightIcon={<Icon name={userPhoneSuccessIcon} type="feather" color={userPhoneSuccessIconColor} />}
                                 />
+
+                                <Text style={Styles.textComponetStyle}>Date of Birth</Text>
+                                <TouchableOpacity
+                                    onPressIn={() =>
+                                        setShowDatePicker(true)
+                                    }
+                                    style={Styles.userDOBContainer}>
+
+                                    <Icon name="calendar" type='feather' color={appColors.basicRed}
+                                    />
+                                    <View style={Styles.userDOBTextContainer}>
+                                        <Text style={Styles.userDOBText}>
+                                            {userDOB.toLocaleDateString()}
+                                        </Text>
+                                    </View>
+                                    <Icon name={userDOBSuccessIcon} type="feather" color={userDOBSuccessIconColor} />
+
+                                </TouchableOpacity>
+
+                                {showDatePicker &&
+                                    <DateTimePicker
+                                        value={userDOB}
+                                        mode="date"
+                                        display="default"
+                                        is24Hour={true}
+                                        onChange={handleDateChange}
+                                        maximumDate={new Date()}
+                                    />}
+
+
                                 <Text style={Styles.textComponetStyle}>Gender</Text>
                                 <ButtonGroup buttons={genderButtons}
                                     selectedIndex={genderSelectedIndex}
@@ -868,11 +946,11 @@ export default function AddConnection(props) {
                 </View>
             </ScrollView>
 
-            
+
             <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-                
+
                 <View style={Styles.buttonViewContainer} >
-                    
+
                     <Button title='REGISTER'
                         icon={<Icon name='arrow-right' type='feather' color='white' style={Styles.buttonIcon} />}
                         iconPosition='right'

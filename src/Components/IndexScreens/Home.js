@@ -11,10 +11,10 @@ import { firestore } from "../../config/firebase";
 import { useNavigation } from '@react-navigation/native';
 
 import { PersonalDetailsFun } from '../../Redux/Slice/UserProfileSlice';
-import { CompaniesFun } from '../../Redux/Slice/CompaniesSlice';
 import { Styles } from '../../Styles/IndexScreens/HomeCss';
 import basicStrings from '../../Strings/basics.json'
 import appColors from '../../Others/appColors.json'
+import { ConnectionsFun } from '../../Redux/Slice/ConnectionsSlice';
 
 export default function Home() {
 
@@ -22,7 +22,6 @@ export default function Home() {
     const navigation = useNavigation();
     const dispatch = useDispatch();
     const userPersonalDataRedux = useSelector((state) => state.UserProfileReducer.personal);
-    const companyDataRedux = useSelector((state) => state.CompaniesReducer.companies_array);
     const [visibleMainComponent, setVisibleMainComponent] = useState(true);
 
     const [currentUserID, setCurrentUserID] = useState('');
@@ -56,13 +55,6 @@ export default function Home() {
     //     }
     // }, [currentUserID]);
 
-    const getAllCompaniesFromFirestore = async () => {
-        const docRef = doc(firestore, "Companies", "Data");
-        const docSnap = await getDoc(docRef);
-        dispatch(CompaniesFun(docSnap.data().companies));
-        checkIsUserIsCreatedProfile();
-    }
-
     const checkIsUserIsCreatedProfile = async () => {
         const docRef = doc(firestore, "Users", currentUserID, "Personal Details", "Data");
         const docSnap = await getDoc(docRef);
@@ -81,6 +73,7 @@ export default function Home() {
 
     const logOutFun = () => {
         dispatch(PersonalDetailsFun(null));
+        dispatch(ConnectionsFun(null));
         navigation.reset({
             index: 0,
             routes: [{ name: 'LogIn' }],

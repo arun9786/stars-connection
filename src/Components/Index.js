@@ -1,5 +1,5 @@
 import { View, Text, SafeAreaView } from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Appbar, Menu, Divider, Provider } from 'react-native-paper';
 import { Button, Icon, Image } from 'react-native-elements';
 
@@ -8,9 +8,13 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Home from './IndexScreens/Home';
 import Invite from './IndexScreens/Invite/Invite';
 import Profile from './Profile';
+import Network from './IndexScreens/Network/Network';
 
 import appColors from '../Others/appColors.json'
 import { useDispatch, useSelector } from 'react-redux';
+import { doc, getDoc } from 'firebase/firestore';
+import { firestore } from '../config/firebase';
+import { ConnectionsFun } from '../Redux/Slice/ConnectionsSlice';
 
 const Tab = createBottomTabNavigator();
 
@@ -18,9 +22,21 @@ export default function Index() {
   const [isProfileImageExist,setIsProfileImageExist]=useState(false);
 
   const dispatch = useDispatch();
-    const userPersonalDataRedux = useSelector((state) => state.UserProfileReducer.personal);
-    console.log("from index",userPersonalDataRedux);
+  const userPersonalDataRedux = useSelector((state) => state.UserProfileReducer.personal);
+  const connectionsDataRedux = useSelector((state) => state.ConnectionsReducer.connections_array)
 
+  useEffect(()=>{
+    if(!connectionsDataRedux){
+      getDoc(doc(firestore,"Connections","Data"))
+      .then((response)=>{
+        dispatch(ConnectionsFun(response.data()[0]))
+      })
+      .catch((error)=>{
+        console.log(error.message)
+      })
+    }
+    console.log("from index:connection", JSON.stringify(connectionsDataRedux))
+  },[]);
   return (
     <Provider>
       <Tab.Navigator screenOptions={({ route }) => ({
@@ -68,9 +84,10 @@ export default function Index() {
         tabBarActiveBackgroundColor:'#ebedeb'
       })}
       >
+
+        <Tab.Screen name="Network" component={Network} options={{ headerShown: false }} />
         <Tab.Screen name="Home" component={Home} options={{ headerShown: false}} />
         <Tab.Screen name="Search" component={Home} options={{ headerShown: false }} />
-        <Tab.Screen name="Network" component={Home} options={{ headerShown: false }} />
         <Tab.Screen name="Refer & Earn" component={Invite} initialParams={{"name":"resetPage"}} options={{ headerShown: false }} />
         <Tab.Screen name="Profile" component={Profile} options={{ headerShown: false }} />
       </Tab.Navigator>

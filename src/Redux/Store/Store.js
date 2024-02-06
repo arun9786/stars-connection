@@ -1,13 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
 
 import UserProfileReducer from '../Slice/UserProfileSlice'
-import CompaniesReducer from '../Slice/CompaniesSlice'
-import CitiesReducer from "../Slice/CitiesSlice";
+import ConnectionsReducer from "../Slice/ConnectionsSlice";
 
 export const Store=configureStore({
     reducer:{
         UserProfileReducer:UserProfileReducer,
-        CompaniesReducer:CompaniesReducer,
-        CitiesReducer:CitiesReducer,
+        ConnectionsReducer:ConnectionsReducer,
     }
 });

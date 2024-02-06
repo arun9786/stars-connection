@@ -7,7 +7,6 @@ import { Button, CheckBox, FAB, Icon, Input, LinearProgress, Overlay } from 'rea
 import { useSelector, useDispatch } from 'react-redux';
 
 import { CurriculumDetailsFun } from '../../Redux/Slice/UserProfileSlice';
-import { CompaniesFun } from '../../Redux/Slice/CompaniesSlice'
 import { Styles } from '../../Styles/UserProfileCreationFolder/CurriculumCss'
 import { ActivityIndicator } from 'react-native'
 
@@ -371,7 +370,6 @@ export default function Curriculum(props) {
     try {
       console.log(newCompanyList);
       setDoc(doc(firestore, "Companies", "Data"), { "companies": newCompanyList });
-      dispatch(CompaniesFun(newCompanyList));
       setUserPlacedCompany(company);
       setShowOverlayCompanyStoreInFirestore(false);
       console.log("Success")
