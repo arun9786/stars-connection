@@ -1,12 +1,12 @@
 import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Keyboard, ScrollView, TouchableWithoutFeedback, View } from "react-native";
-import { Button, Icon,  Input, Text } from "react-native-elements";
+import { Button, Icon, Input, Text } from "react-native-elements";
 import { useNavigation } from '@react-navigation/native';
 import { RadioGroup } from "react-native-radio-buttons-group";
 
-import { getAuth,onAuthStateChanged } from 'firebase/auth'
+import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { firestore } from "../../config/firebase";
-import {  doc, getDoc, } from 'firebase/firestore'
+import { doc, getDoc, } from 'firebase/firestore'
 
 import { Styles } from "../../Styles/Registration/LogInCss";
 import { mobileRegex, passwordRegex } from '../../Others/Regex'
@@ -22,12 +22,12 @@ import CustomToast from "../Features/CustomToast";
 import OverlayLoader from "../Features/OverlayLoader";
 
 
-const LogIn=()=> {
+const LogIn = () => {
     const auth = getAuth();
     const navigation = useNavigation();
     const dispatch = useDispatch();
     const userPersonalDataRedux = useSelector((state) => state.UserProfileReducer.personal);
-    console.log("login redux",userPersonalDataRedux);
+    console.log("login redux", userPersonalDataRedux);
 
 
     const [userPhone, setUserPhone] = useState('6379185147');
@@ -92,7 +92,7 @@ const LogIn=()=> {
             setIsToastVisible(false);
         }, timeout);
     }
-    
+
 
     const LogInWithPhonePasswordFun = async () => {
         if (!mobileRegex.test(userPhone)) {
@@ -104,38 +104,36 @@ const LogIn=()=> {
                 Toast('Please enter your password.');
             }
         } else {
-            let networkStatus = await checkInternetConnection();
-            if (networkStatus) {
-                setShowOvelayLoader(true);
-                setOvelayLoaderContent("While we verifying your credentials...");
-                getDoc(doc(firestore, "Users", userPhone, "Personal Details", "Data"))
-                    .then((result) => {
-                        console.log(result.data());
+            setShowOvelayLoader(true);
+            setOvelayLoaderContent("While we verifying your credentials...");
+            getDoc(doc(firestore, "Users", userPhone, "Personal Details", "Data"))
+                .then((result) => {
+                    console.log(result.data());
+                    setShowOvelayLoader(false);
+                    if (result.data()) {
                         setShowOvelayLoader(false);
-                        if (result.data()) {
-                            setShowOvelayLoader(false);
-                            let encodedPassword = passwordEncoder(userPassword);
-                            if (result.data().Password === encodedPassword) {
-                                dispatch(PersonalDetailsFun(result.data()));
-                                Toast('Sign-in successful...', false, undefined, 'top')
-                                const timer = setTimeout(() => {
-                                    openIndexPage()
-                                }, 1000);
-                                return () => clearTimeout(timer);
-                            } else {
-                                Toast("Invalid credentials provided. Please check your information and try again.", undefined, 5000);
-                            }
+                        let encodedPassword = passwordEncoder(userPassword);
+                        if (result.data().Password === encodedPassword) {
+                            dispatch(PersonalDetailsFun(result.data()));
+                            Toast('Sign-in successful...', false, undefined, 'top')
+                            const timer = setTimeout(() => {
+                                openIndexPage()
+                            }, 1000);
+                            return () => clearTimeout(timer);
                         } else {
-                            setShowOvelayLoader(false);
-                            Toast("Oops! Unregistered mobile number. Verify or Create a new account.", true, 5000);
+                            Toast("Invalid credentials provided. Please check your information and try again.", undefined, 5000);
                         }
-                    })
-                    .catch((error) => {
+                    } else {
                         setShowOvelayLoader(false);
-                        Toast(error.message, true, 5000);
-                        console.log(error);
-                    })
-            }
+                        Toast("Oops! Unregistered mobile number. Verify or Create a new account.", true, 5000);
+                    }
+                })
+                .catch((error) => {
+                    setShowOvelayLoader(false);
+                    Toast(error.message, true, 5000);
+                    console.log(error);
+                })
+
         }
     }
 

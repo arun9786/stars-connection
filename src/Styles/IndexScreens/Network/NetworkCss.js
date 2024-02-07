@@ -4,13 +4,15 @@ export const Styles=StyleSheet.create({
     container: {
         flex:1,
         padding:5,
+        marginBottom:10,
     },
     userDetailsTopContainer:{
         backgroundColor:'#9c033e',
-        margin:15,
+        margin:10,
         padding:15,
         borderRadius:10,
-        paddingBottom:25,
+        borderBottomLeftRadius:0,
+        marginBottom:0,
     },
     userDetailsTitle:{
         textAlign:'center',

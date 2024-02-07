@@ -84,9 +84,8 @@ export default function Index() {
         tabBarActiveBackgroundColor:'#ebedeb'
       })}
       >
-
-        <Tab.Screen name="Refer & Earn" component={Invite} initialParams={{"name":"resetPage"}} options={{ headerShown: false }} />
         <Tab.Screen name="Network" component={Network} options={{ headerShown: false }} />
+        <Tab.Screen name="Refer & Earn" component={Invite} initialParams={{"name":"resetPage"}} options={{ headerShown: false }} />
         <Tab.Screen name="Home" component={Home} options={{ headerShown: false}} />
         <Tab.Screen name="Search" component={Home} options={{ headerShown: false }} />
         <Tab.Screen name="Profile" component={Profile} options={{ headerShown: false }} />
