@@ -6,5 +6,16 @@ const getColorCode = () => {
     return colors[number];
 }
 
+const getColorCodeDark=()=>{
+    const colors=[
+        "#045c1b", "#5c2304", "#5c040c","#5c0423", "#5c043a", "#5c0457", "#44045c", "#27045c", "#11045c", "#11045c", "#04275c",
+        "#04275c", "#044a5c", "#044a5c", "#045c49", "#045c2d", "#045c2d", "#045c2d", "#175c04", "#535c04", "#5c0404", "#524c02",
+        "#522802", "#524a02", "#024f52", "#023c52", "#021b52", "#520248"
+    ]
 
-export { getColorCode };
+    const number = Math.floor(Math.random() * (colors.length - 1));
+    return colors[number];
+}
+
+
+export { getColorCode, getColorCodeDark };

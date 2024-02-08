@@ -32,7 +32,8 @@ const Network = () => {
         "Promoter Mobile": "NA"
     }
     const [userDetails, setUserDetails] = useState({});
-    const [userConnectionList, setUserConnectionList] = useState();
+    const [userConnectionList, setUserConnectionList] = useState(); 
+    const [userPhoneNumber, setUserPhoneNumber]=useState('');
 
     const [referalParentMobile, setReferalParentMobile] = useState('NA');
     const [referalGrandParent, setReferalGrandParent] = useState('NA');
@@ -58,6 +59,7 @@ const Network = () => {
     useEffect(() => {
         if (connectionsDataRedux && userPersonalDataRedux && userPersonalDataRedux.Phone) {
             console.log("hello", connectionsDataRedux)
+            setUserPhoneNumber(userPersonalDataRedux.Phone);
             setUserDetails((prevState) => ({ ...prevState, "Mobile": userPersonalDataRedux.Phone, "Name": userPersonalDataRedux.FirstName + " " + userPersonalDataRedux.LastName }))
             setUserConnectionList(connectionsDataRedux["6379185147"]);
             getDoc(doc(firestore, "Users", userPersonalDataRedux.Phone, "Connections", "Data"))
@@ -91,7 +93,7 @@ const Network = () => {
             // console.log("wel");
             // console.log("list", JSON.stringify(userConnectionList));
             const level = findKeyLevel(connectionsDataRedux, userPersonalDataRedux.Phone);
-            const connection = findKeyValue(connectionsDataRedux, userPersonalDataRedux.Phone);
+            const connection = getChildrensObject(connectionsDataRedux, userPersonalDataRedux.Phone);
             // console.log("connection", connection);
             let totalMembers = 0;
             setUserTreeLevel(level);
@@ -105,7 +107,7 @@ const Network = () => {
                 setAllDirectReferals(connectionObject);
                 // console.log(connectionObject);
                 setUserDetails((prevState) => ({ ...prevState, "Direct Referals": length }));
-                totalMembers = countUniqueKeys(connection);
+                totalMembers = countAllChildrens(connection);
             } else {
                 setUserDetails((prevState) => ({ ...prevState, "Direct Referals": 0 }));
             }
@@ -124,18 +126,17 @@ const Network = () => {
         let array=[];
             for(let phone in allDirectReferals){
                 console.log(phone);
-                let connection=findKeyValue(connectionsDataRedux,phone);
+                let connection=getChildrensObject(connectionsDataRedux,phone);
                 let directReferals=0;
                 let totalMembers=0;
                 let FirstName='N';
                 let LastName='N';
                 getDoc(doc(firestore, "Users",phone , "Personal Details", "Data"))
                     .then((result) => {
-                        console.log("not came yet")
                         if(result.data()){
                             if(typeof connection==='object'){
                                 directReferals=Object.keys(connection).length;
-                                totalMembers = countUniqueKeys(connection);
+                                totalMembers = countAllChildrens(connection);
                             }
                             const FirstName=result.data().FirstName;
                             const LastName=result.data().LastName;
@@ -148,14 +149,17 @@ const Network = () => {
                                 "Icon":FirstName.charAt(0)+LastName.charAt(0)
                             }
                             array.push(finalObj);  
-                            setReferalsFinalArray(array);
+                            console.log(array.length);
+                            if(array.length===Object.keys(allDirectReferals).length){
+                                setReferalsFinalArray(array);
+                            }
+                            console.log("array",array);
                         }else{
                             return null;
                         }  
                     }).catch((error) => {
                         console.log("error please", error.message)
                 })
-                console.log(JSON.stringify(connection), directReferals, totalMembers);
             }
     }
 
@@ -173,12 +177,12 @@ const Network = () => {
         return undefined;
     }
 
-    function findKeyValue(obj, targetKey) {
+    function getChildrensObject(obj, targetKey) {
         for (const key in obj) {
             if (key === targetKey) {
                 return obj[key];
             } else if (typeof obj[key] === 'object') {
-                const result = findKeyValue(obj[key], targetKey);
+                const result = getChildrensObject(obj[key], targetKey);
                 if (result !== undefined) {
                     return result;
                 }
@@ -187,11 +191,11 @@ const Network = () => {
         return undefined;
     }
 
-    function countUniqueKeys(obj, uniqueKeys = new Set()) {
+    function countAllChildrens(obj, uniqueKeys = new Set()) {
         for (const key in obj) {
             uniqueKeys.add(key);
             if (typeof obj[key] === 'object') {
-                countUniqueKeys(obj[key], uniqueKeys);
+                countAllChildrens(obj[key], uniqueKeys);
             }
         }
 
@@ -202,6 +206,10 @@ const Network = () => {
     const openAddConnectionPage = () => {
         navigation.navigate('Invite Add Connection');
     }
+    const openConnectionTreePage=()=>{
+        const data={[userPersonalDataRedux.Phone]: userConnectionList };
+        navigation.navigate('Network Connection Tree', {data, userPhoneNumber});
+    }
 
 
     return (
@@ -209,7 +217,7 @@ const Network = () => {
             <Appbar.Header style={{ backgroundColor: appColors.basicRed }}>
                 <Appbar.Content title="Connections" color='white' />
                 <View style={{flexDirection:'row', alignItems:'center', marginLeft:5, marginRight:7}}>
-                    <VectorIcon name="network-wired" color='white' size={21} style={{marginRight:17}}/>
+                    <VectorIcon name="network-wired" color='white' size={21} style={{marginRight:17}} onPress={()=>openConnectionTreePage()}/>
                     <VectorIcon name='user-plus' size={21} color='white' onPress={() => openAddConnectionPage()} 
                     style={{marginRight:17}}/>
                     <Icon name='help-circle' type='feather' color='white' />
