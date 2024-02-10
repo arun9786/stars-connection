@@ -20,6 +20,7 @@ import { Provider } from "react-native-paper";
 
 import CustomToast from "../Features/CustomToast";
 import OverlayLoader from "../Features/OverlayLoader";
+import { getSizeForScreen } from "../Features/responsiveSizeMaker";
 
 
 const LogIn = () => {
@@ -48,7 +49,7 @@ const LogIn = () => {
             id: "1",
             label: "Sign In",
             value: 'Sign In',
-            labelStyle: { fontSize: 20, marginBottom: 10, },
+            labelStyle: { fontSize: getSizeForScreen(19), marginBottom: 10, },
             color: appColors.basicRed,
         }
     ]
@@ -59,7 +60,7 @@ const LogIn = () => {
             id: "1",
             label: "Create New Account",
             value: 'Create New Account',
-            labelStyle: { fontSize: 18 },
+            labelStyle: { fontSize: getSizeForScreen(18) },
             color: appColors.basicRed,
         }
     ]
@@ -70,7 +71,7 @@ const LogIn = () => {
             id: "1",
             label: "Reset Password",
             value: 'Reset Password',
-            labelStyle: { fontSize: 18 },
+            labelStyle: { fontSize: getSizeForScreen(18) },
             color: appColors.basicRed,
         }
     ]

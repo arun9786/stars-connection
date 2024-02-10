@@ -26,6 +26,7 @@ import { View } from "react-native";
 import appColors from './src/Others/appColors.json'
 import AddConnection from "./src/Components/IndexScreens/Invite/AddConnection";
 import NoInternetOverlay from "./src/Components/Features/NoInternetOverlay";
+import NetworkTree from "./src/Components/IndexScreens/Network/NetworkTree";
 
 import { checkInternetConnection } from "./src/Others/InternetConnectionStatus";
 
@@ -64,6 +65,7 @@ const App=()=> {
           <Stack.Screen name="SignUp" component={SignUp} options={{ headerTitle: 'Create New Account', headerStyle: { backgroundColor: appColors.basicRed } , headerTintColor:'white'}} />
           <Stack.Screen name="Forgot Password" component={ForgotPassword} options={{ headerTitle: 'Reset Password', headerStyle: { backgroundColor: appColors.basicRed }, headerTintColor:'white' }} />
           <Stack.Screen name="Invite Add Connection" component={AddConnection} options={{ headerTitle: 'Add Connection', headerStyle: { backgroundColor: appColors.basicRed }, headerTintColor:'white' }}/>
+          <Stack.Screen name="Network Network Tree" component={NetworkTree} options={{ headerTitle: 'Connection Tree', headerStyle: { backgroundColor: appColors.basicRed }, headerTintColor:'white' }}/>
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>

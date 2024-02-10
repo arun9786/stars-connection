@@ -1,41 +1,43 @@
 import { StyleSheet } from "react-native";
 import appColors from '../../Others/appColors.json'
+import { getSizeForScreen } from "../../Components/Features/responsiveSizeMaker";
+
 export const Styles=StyleSheet.create({
     contaier:{
         flex:1,
-        margin:10,
+        margin:getSizeForScreen(10),
     },
     pageWelcome:{
-        fontSize:23,
+        fontSize:getSizeForScreen(23),
         fontWeight:'bold',
     },
     signupContainer:{
-        marginTop:5,
+        marginTop:getSizeForScreen(5),
         backgroundColor:'#e8e7e6',
-        paddingLeft:5,
-        paddingRight:5,
-        paddingBottom:5,
-        borderTopRightRadius:10,
-        borderTopLeftRadius:10,
+        paddingLeft:getSizeForScreen(5),
+        paddingRight:getSizeForScreen(5),
+        paddingBottom:getSizeForScreen(5),
+        borderTopRightRadius:getSizeForScreen(10),
+        borderTopLeftRadius:getSizeForScreen(10),
     },
     signinContainer:{
         backgroundColor:'white',
-        paddingTop:5,
-        paddingLeft:5,
-        paddingRight:5,
-        paddingBottom:15,
+        paddingTop:getSizeForScreen(5),
+        paddingLeft:getSizeForScreen(5),
+        paddingRight:getSizeForScreen(5),
+        paddingBottom:getSizeForScreen(15),
     },
     inputContainer:{
-        borderWidth:2,
+        borderWidth:getSizeForScreen(3),
         borderColor:appColors.basicRed,
-        paddingLeft:5,
-        paddingRight:5,
-        borderBottomWidth:2,
-        borderRadius:8,
+        paddingLeft:getSizeForScreen(4),
+        paddingRight:getSizeForScreen(4),
+        borderBottomWidth:getSizeForScreen(3),
+        borderRadius:getSizeForScreen(8),
     },
     input:{
-        paddingLeft:10,
-        paddingRight:3
+        paddingLeft:getSizeForScreen(10),
+        paddingRight: getSizeForScreen(3)
     },
     inputIcons:{
         
@@ -45,40 +47,28 @@ export const Styles=StyleSheet.create({
         textAlign:'right',
     },
     button:{
-        margin:8,
+        margin:getSizeForScreen(8),
         backgroundColor:'#9D1D27',
-        borderRadius:8,
-        padding:12,
+        borderRadius:getSizeForScreen(8),
+        padding:getSizeForScreen(10),
     },
     buttonIcon:{
         color:'white',
-        marginLeft:6,
+        marginLeft:getSizeForScreen(6),
     },
     buttonTitleStyle:{
-        fontSize:19,
-    },
-    errorMsg:{
-        color:'#d10f25',
-        marginBottom:5,
-        marginLeft:10,
-        marginRight:10,
-        fontSize:17,
-        fontStyle:'italic',
-        fontFamily:'Roboto',
-        textShadowColor: '#bf3444',
-        textShadowOffset: { width: 0.5, height: 0.5 },
-        textShadowRadius: 1, 
+        fontSize:getSizeForScreen(19),
     },
     privacyPolicy:{
-        marginLeft:8,
-        marginRight:8,
+        marginLeft:getSizeForScreen(19),
+        marginRight:getSizeForScreen(8),
     },
     forgotPasswordContainer:{
         backgroundColor:'#e8e7e6',
-        paddingLeft:5,
-        paddingRight:5,
-        paddingBottom:5,
-        borderBottomRightRadius:10,
-        borderBottomLeftRadius:10,
+        paddingLeft:getSizeForScreen(5),
+        paddingRight:getSizeForScreen(5),
+        paddingBottom:getSizeForScreen(5),
+        borderBottomRightRadius:getSizeForScreen(10),
+        borderBottomLeftRadius:getSizeForScreen(10),
     },
 })

@@ -1,35 +1,36 @@
 import { StyleSheet } from "react-native";
+import { getSizeForScreen } from "../../Components/Features/responsiveSizeMaker";
 export const Styles=StyleSheet.create({
     overlayStyle:{
         width: '80%',
-        padding:20,
-        borderRadius:10,
+        padding:getSizeForScreen(20),
+        borderRadius:getSizeForScreen(10),
     },
     overlayPleaseWait:{
-        fontSize:18,
+        fontSize:getSizeForScreen(18),
     },
     overlayContent:{
-        marginTop:5,
-        fontSize:16,
+        marginTop:getSizeForScreen(5),
+        fontSize:getSizeForScreen(16),
     },
     overlayActivityIndicator:{
-        marginTop:10,
+        marginTop:getSizeForScreen(10),
     },
     overlayViewLoginSuccess:{
         width:'100%',
         alignItems:'center'
     },
     overlaySignInSuccess:{
-        fontSize:17,
+        fontSize:getSizeForScreen(17),
     },
     overlaySuccessIcon:{
         width:50, 
         height:50, 
         alignContent:'center',
-        marginTop:10,
-        marginBottom:10,
+        marginTop:getSizeForScreen(10),
+        marginBottom:getSizeForScreen(10),
     },
     overlaySuccessButtonIcon:{
-        marginRight:10
+        marginRight:getSizeForScreen(10)
     }
 });

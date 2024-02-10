@@ -27,7 +27,14 @@ export default {
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["@react-native-firebase/app", "@react-native-firebase/auth"]
+    "plugins": [
+      "@react-native-firebase/app", 
+      "@react-native-firebase/auth",
+      "expo-contacts",
+      {
+        "contactsPermission": "Allow $(PRODUCT_NAME) to access your contacts."
+      }
+    ]
   },
   "extra" :{
     firebaseApiKey: "AIzaSyAPq6u697JqACUwgoXmYp-yVUhivso1Yhc",

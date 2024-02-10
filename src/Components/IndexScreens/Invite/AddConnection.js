@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Keyboard, ScrollView, ToastAndroid, TouchableWithoutFeedback, View } from "react-native";
 import { BottomSheet, Button, ButtonGroup, CheckBox, Icon, Image, Input, ListItem, Overlay, Text } from "react-native-elements";
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import ModalSelector from "react-native-modal-selector";
 import OTPTextView from "react-native-otp-textinput";
 import { TouchableOpacity } from "react-native-gesture-handler";
@@ -397,7 +397,6 @@ export default function AddConnection(props) {
     }
 
     const handleDateChange = (event, date) => {
-        console.log("hello")
         setShowDatePicker(false);
         if (date !== undefined) {
             setUserDOB(date);
@@ -690,9 +689,10 @@ export default function AddConnection(props) {
                     batch.update(connectionDocref, connectionArray);
                     batch.set(personalConnectionDocRef, personalConnection);
                     console.log("final", JSON.stringify(connectionArray));
-                    originalArray={...originalArray,[referalGrandParent]:connectionArray[referalGrandParent]};
+                    console.log(realParent);
+                    originalArray={...originalArray,[realParent]:connectionArray[realParent]};
                     console.log("original", JSON.stringify(originalArray))
-                    // setShowOvelayLoader(false);
+                    setShowOvelayLoader(false);
                     batch.commit()
                         .then(() => {
                             setShowOvelayLoader(false);
@@ -722,7 +722,7 @@ export default function AddConnection(props) {
     }
 
     const openInvitePage = () => {
-        navigation.goBack();
+        navigation.goBack({data:"For Connection page"});
     }
 
     return (

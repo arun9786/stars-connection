@@ -7,19 +7,43 @@ import { ScrollView } from 'react-native-gesture-handler';
 
 import { firestore } from '../../../config/firebase';
 import OverlayLoader from '../../Features/OverlayLoader';
-import { useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { getColorCodeDark } from '../../../Others/Basics';
 import appColors from '../../../Others/appColors.json'
+import CustomToast from "../../Features/CustomToast";
 
 
 const ConnectionTree = () => {
 
     const route = useRoute();
+    const navigation= useNavigation();
     const { data, userPhoneNumber } = route.params;
     const { width: screenWidth } = Dimensions.get('window');
-    console.log(data)
+    // const data={
+    //     "6379185147": {
+    //         "6379185152":"6379185152",
+    //         "9678906549": {
+    //           "9786345609": {
+    //             "8765478902": {
+    //               "9876547810": {
+    //                 "7890654789":{
+    //                   "9867845600":"9867845600"
+    //                 }
+    //               }
+    //             },
+    //             "8765478903": "8765478903"
+    //           },
+    //           "9786345630": "9786345630"
+    //         },
+    //         "9159934457":{
+    //           "9865789045":"9865789045"
+    //         }
+    //       },
+    // }
+    // console.log(data)
+    console.log("userPhone", userPhoneNumber);
 
-    const [userPhone, setUserPhone] = useState("6379185147");
+    const [userPhone, setUserPhone] = useState(userPhoneNumber);
     const [allParents, setAllParents] = useState([]);
     const [allChildrens, setAllChildrens] = useState([]);
     const [allConnection, setAllConnection] = useState([]);
@@ -28,13 +52,16 @@ const ConnectionTree = () => {
     const [showOvelayLoader, setShowOvelayLoader] = useState(false);
     const [ovelayLoaderContent, setOvelayLoaderContent] = useState('');
 
+    const [isToastVisible,setIsToastVisible]=useState(false);
+    const [toastContent,setToastContent]=useState(false);
+
 
     useEffect(() => {
         setShowOvelayLoader(true);
         setOvelayLoaderContent("Fetching your Connection Details...")
-        let parent = findParents(data, userPhone);
-        let connection = getChildrensObject(data, userPhone);
-        let allConnection = getAllKeys(data);
+        const parent = findParents(data, userPhone);
+        const connection = getChildrensObject(data, userPhone);
+        const allConnection = getAllKeys(data);
         let children = [];
         console.log("connection", connection)
         console.log("type", typeof connection)
@@ -49,6 +76,16 @@ const ConnectionTree = () => {
         console.log("allConnection", allConnection)
         if(parent){
             setAllParents(parent);
+        }
+        console.log(allConnection.length, allConnection[0])
+        if(!allConnection || (allConnection.length===1 && allConnection[0]==="undefined")){
+            setShowOvelayLoader(false);
+            Toast("Something went wrong. Please try again.",true,4000);
+            const timer = setTimeout(() => {
+               navigation.goBack()
+           }, 2000);
+          return () => clearTimeout(timer);
+            
         }
         setAllChildrens(children);
         setAllConnection(allConnection);
@@ -68,15 +105,15 @@ const ConnectionTree = () => {
                             if (Object.keys(obj).length === allConnection.length) {
                                 setAllConnectionDetails(obj);
                             }
-                        }else{
-                            console.log("firebase error")
                         }
                     })
                     .catch((error) => {
-                        console.log(error.message)
+                        setShowOvelayLoader(false);
+                        Toast(error.message,true,4000);
+                        console.log(error.message);
+                        navigation.goBack();
                     });
             }
-            // 
         }
     }, [allConnection]);
 
@@ -102,8 +139,17 @@ const ConnectionTree = () => {
         if (Object.keys(allConnectionDetails).length > 0) {
             setShowOvelayLoader(false)
         }
-        console.log(allConnectionDetails)
+        // console.log(allConnectionDetails)
     }, [allConnectionDetails]);
+
+    const Toast = (message, errorStatus = true, timeout = 2500, position = 'top') => {
+        let content = { "message": message, "errorStatus": errorStatus, "timeout": timeout, "position": position };
+        setToastContent(content);
+        setIsToastVisible(true);
+        setTimeout(() => {
+            setIsToastVisible(false);
+        }, timeout);
+    }
 
     const findParents = (obj, targetKey, path = []) => {
         for (const key in obj) {
@@ -144,6 +190,11 @@ const ConnectionTree = () => {
         return keys;
     };
 
+    const parsePhoneInConnection=(phone)=>{
+        let parsePhone=phone.slice(0,2)+"******"+phone.slice(8,10);    
+        return parsePhone;
+    }
+
     const changeCurrentUser = (phone) => {
         console.log(phone)
         setUserPhone(phone);
@@ -165,14 +216,16 @@ const ConnectionTree = () => {
                     }}>
                         <TouchableOpacity onPress={() => changeCurrentUser(firstPhoneNumber)}>
                             <View style={{ flex: 1, alignItems: 'center' }} >
-                                <View style={{ padding: 5, borderWidth: 2, borderRadius: 3, borderColor: '#544f04', flexDirection: 'row', minWidth: screenWidth * 0.4, maxWidth: (allChildrens.length == 1 ||  i == allChildrens.length-1 ? screenWidth * 0.6 : screenWidth * 0.4)}}>
+                                <View style={{ padding: 5, borderWidth: 2, borderRadius: 3, borderColor: '#cacccb', flexDirection: 'row', minWidth: screenWidth * 0.4, maxWidth: (allChildrens.length == 1 ||  i == allChildrens.length-1 ? screenWidth * 0.6 : screenWidth * 0.4)}}>
                                     <View style={{ justifyContent: 'center', margin: 5 }}>
                                         <Text style={{ backgroundColor: getColorCodeDark(), padding: 10, color: 'white', borderRadius: 20 }}>
                                             {allConnectionDetails[firstPhoneNumber].Icon}
                                         </Text>
                                     </View>
                                     <View style={{ margin: 5, marginLeft: 10, marginRight: 50 }}>
-                                        <Text style={{ fontFamily: 'serif' }}>{firstPhoneNumber}</Text>
+                                        <Text style={{ fontFamily: 'serif' }}>
+                                            {parsePhoneInConnection(firstPhoneNumber)}
+                                        </Text>
                                         <Text numberOfLines={1} ellipsizeMode='tail' style={{ fontFamily: 'serif' }}>
                                             {allConnectionDetails[firstPhoneNumber].Name}
                                         </Text>
@@ -189,14 +242,16 @@ const ConnectionTree = () => {
                         {secondPhoneNumber &&
                             <TouchableOpacity onPress={() => changeCurrentUser(secondPhoneNumber)}>
                                 <View style={{ flex: 1, alignItems: 'center' }} >
-                                    <View style={{ padding: 5, borderWidth: 2, borderRadius: 3, borderColor: '#544f04', flexDirection: 'row', minWidth: screenWidth * 0.4, maxWidth: screenWidth * 0.4, }}>
+                                    <View style={{ padding: 5, borderWidth: 2, borderRadius: 3, borderColor: '#cacccb', flexDirection: 'row', minWidth: screenWidth * 0.4, maxWidth: screenWidth * 0.4, }}>
                                         <View style={{ justifyContent: 'center', margin: 5 }}>
                                             <Text style={{ backgroundColor: getColorCodeDark(), padding: 10, color: 'white', borderRadius: 20 }}>
                                                 {allConnectionDetails[secondPhoneNumber].Icon}
                                             </Text>
                                         </View>
                                         <View style={{ margin: 5, marginLeft: 10, marginRight: 50 }}>
-                                            <Text style={{ fontFamily: 'serif' }}>{secondPhoneNumber}</Text>
+                                            <Text style={{ fontFamily: 'serif' }}>
+                                                {parsePhoneInConnection(secondPhoneNumber)}
+                                            </Text>
                                             <Text numberOfLines={1} ellipsizeMode='tail' style={{ fontFamily: 'serif' }}>
                                                 {allConnectionDetails[secondPhoneNumber].Name}
                                             </Text>
@@ -221,6 +276,7 @@ const ConnectionTree = () => {
     return (
         <View style={styles.container}>
             {showOvelayLoader && <OverlayLoader content={ovelayLoaderContent} />}
+            {isToastVisible && <CustomToast content={toastContent} handleToastVisible={()=>setIsToastVisible(false)}/> }
             <ScrollView showsVerticalScrollIndicator={false}>
                 <View >
                     {
@@ -230,16 +286,16 @@ const ConnectionTree = () => {
                                 allParents.map((item, index) => {
                                     return (
                                         <TouchableOpacity key={index} onPress={() => changeCurrentUser(item)}>
-                                            <View style={{ flex: 1, alignItems: 'center' }} >
-                                                <View style={{ padding: 5, borderWidth: 2, borderRadius: 3, borderColor: '#034370', flexDirection: 'row', minWidth: screenWidth * 0.6, maxWidth: screenWidth * 0.6, }}>
+                                            <View key={index} style={{ flex: 1, alignItems: 'center' }} >
+                                                <View style={{ padding: 5, borderWidth:2, borderRadius: 3, borderColor: (index==0 ?(allParents.length>0) ?'#104c7a' : '#cacccb' :'#cacccb'), flexDirection: 'row', minWidth: screenWidth * 0.6, maxWidth: screenWidth * 0.6, }}>
                                                     <View style={{ justifyContent: 'center', margin: 5 }}>
                                                         <Text style={{ backgroundColor: getColorCodeDark(), padding: 10, color: 'white', borderRadius: 50, fontSize: 16 }}>
                                                             {allConnectionDetails[item].Icon}
                                                         </Text>
                                                     </View>
-                                                    <View style={{ margin: 5, marginLeft: 10, }}>
+                                                    <View style={{ margin: 5, marginLeft: 10,maxWidth: screenWidth * 0.4 }}>
                                                         <Text numberOfLines={1} ellipsizeMode='tail' style={{ fontSize: 16, fontFamily: 'serif' }}>
-                                                            {item}
+                                                            {parsePhoneInConnection(item)}
                                                         </Text>
                                                         <Text numberOfLines={1} ellipsizeMode='tail' style={{ fontSize: 16, fontFamily: 'serif' }}>
                                                             {allConnectionDetails[item].Name}
@@ -251,7 +307,7 @@ const ConnectionTree = () => {
                                                     </View>
                                                 </View>
                                                 <View style={{ alignItems: 'center' }}>
-                                                    <View style={{ height: 40, width: 2, backgroundColor: appColors.basicRed }}>
+                                                    <View style={{ height: 40, width: 2, backgroundColor: "#b3b5b4" }}>
                                                     </View>
                                                 </View>
                                             </View>
@@ -267,17 +323,20 @@ const ConnectionTree = () => {
                                                 {allConnectionDetails[userPhone].Icon}
                                             </Text>
                                         </View>
-                                        <View style={{ margin: 5, marginLeft: 10 }}>
+                                        <View style={{ margin: 5, marginLeft: 10, maxWidth: screenWidth * 0.4 }}>
                                             <Text numberOfLines={1} ellipsizeMode='tail' style={{ fontSize: 16, fontFamily: 'serif' }}>
-                                                {userPhone}
+                                                {parsePhoneInConnection(userPhone)}
                                             </Text>
                                             <Text numberOfLines={1} ellipsizeMode='tail' style={{ fontSize: 16, fontFamily: 'serif' }}>
                                                 {allConnectionDetails[userPhone].Name}
                                             </Text>
                                         </View>
-                                        <View style={{ justifyContent: 'center', alignItems: 'flex-end', flex: 1, marginRight: 5 }}>
-                                            <Icon name='chevron-right' type='feather' />
-                                        </View>
+                                        {
+                                            Object.keys((allChildrens)).length >0  &&
+                                            <View style={{ justifyContent: 'center', alignItems: 'flex-end', flex: 1, marginRight: 5 }}>
+                                                <Icon name='chevron-right' type='feather' />
+                                            </View>
+                                        }
                                     </View>
                                 </View>
                             </TouchableOpacity>
@@ -285,10 +344,10 @@ const ConnectionTree = () => {
                                 Object.keys((allChildrens)).length > 0 &&
                                 <View>
                                     <View style={{ alignItems: 'center' }}>
-                                        <View style={{ height: 40, width: 2, backgroundColor: appColors.basicRed, }}>
+                                        <View style={{ height: 40, width: 2, backgroundColor: "#b3b5b4", }}>
                                         </View>
                                     </View>
-                                    <View style={{ padding: 5, borderColor: '#3c0259', borderRadius: 3, borderWidth: 2, minWidth: screenWidth * 0.9, maxWidth: screenWidth * 1 }}>
+                                    <View style={{ padding: 5, borderColor: '#b3b5b4', borderRadius: 3, borderWidth: 2, minWidth: screenWidth * 0.9, maxWidth: screenWidth * 1 }}>
                                         <Text style={{ marginBottom: 10, marginTop: 5, marginLeft: 3, marginRight: 3, textAlign: 'center', fontSize: 15, fontFamily: 'serif' }}>
                                             Direct Connections under 
                                             <Text style={{fontWeight:'bold'}}> {allConnectionDetails[userPhone].Name} </Text>({Object.keys((allChildrens)).length})

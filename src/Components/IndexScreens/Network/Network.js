@@ -1,25 +1,31 @@
-import { View, Text, FlatList, SafeAreaView } from 'react-native'
-import React, { useEffect, useState } from 'react'
-import { Appbar, Provider } from 'react-native-paper';
+import { View, Text, FlatList, SafeAreaView, Dimensions } from 'react-native'
+import React, { useEffect, useLayoutEffect, useState } from 'react'
+import { Appbar, ProgressBar, Provider } from 'react-native-paper';
 
 import basicStrings from '../../../Strings/basics.json'
 import appColors from '../../../Others/appColors.json'
 
 import { Styles } from '../../../Styles/IndexScreens/Network/NetworkCss';
-import { Icon } from 'react-native-elements';
+import { Icon, LinearProgress } from 'react-native-elements';
 import { useDispatch, useSelector } from 'react-redux';
 import { doc, getDoc } from 'firebase/firestore';
 import { firestore } from '../../../config/firebase';
 import { ConnectionsFun } from '../../../Redux/Slice/ConnectionsSlice';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { ScrollView } from 'react-native-gesture-handler';
-import VectorIcon  from 'react-native-vector-icons/FontAwesome5';
+import VectorIcon from 'react-native-vector-icons/FontAwesome5';
+import CustomToast from "../../Features/CustomToast";
+import CustomLoaderWithoutMsg from '../../Features/OverlayLoaderWIthoutMsg';
+import CustomProgressBar from '../../Features/CustomProgressBar';
 
-
-const Network = () => {
+const Network = (props) => {
 
     const navigation = useNavigation();
+    // const route=useRoute();
+    // console.log(route);
     const dispatch = useDispatch();
+    const { width: screenWidth } = Dimensions.get('window');
+
     let userPersonalDataRedux = useSelector((state) => state.UserProfileReducer.personal);
     let connectionsDataRedux = useSelector((state) => state.ConnectionsReducer.connections_array);
     let userDetailsArr = {
@@ -31,22 +37,34 @@ const Network = () => {
         "Promoter": "NA",
         "Promoter Mobile": "NA"
     }
+
+    const [visibleMainComponent, setVisibleMainComponent] = useState(false);
+
     const [userDetails, setUserDetails] = useState({});
-    const [userConnectionList, setUserConnectionList] = useState(); 
-    const [userPhoneNumber, setUserPhoneNumber]=useState('');
+    const [userConnectionList, setUserConnectionList] = useState();
+    const [userPhoneNumber, setUserPhoneNumber] = useState('');
 
     const [referalParentMobile, setReferalParentMobile] = useState('NA');
     const [referalGrandParent, setReferalGrandParent] = useState('NA');
 
-    const [allDirectReferals,setAllDirectReferals]=useState({});
-    const [userTreeLevel,setUserTreeLevel]=useState(0);
-    const [referalsFinalArray,setReferalsFinalArray]=useState([]);
+    const [allDirectReferals, setAllDirectReferals] = useState({});
+    const [userTreeLevel, setUserTreeLevel] = useState(0);
+    const [referalsFinalArray, setReferalsFinalArray] = useState([]);
+
+    const [showOvelayLoader, setShowOvelayLoader] = useState(false);
+    const [ovelayLoaderContent, setOvelayLoaderContent] = useState('');
+
+    const [isToastVisible, setIsToastVisible] = useState(false);
+    const [toastContent, setToastContent] = useState(false);
+
 
     useEffect(() => {
         setUserDetails(userDetailsArr);
     }, []);
 
-    if (!connectionsDataRedux) {
+    useEffect(()=>{
+        console.log("coming...")
+        setVisibleMainComponent(false);
         getDoc(doc(firestore, "Connections", "Data"))
             .then((response) => {
                 dispatch(ConnectionsFun(response.data()))
@@ -54,11 +72,11 @@ const Network = () => {
             .catch((error) => {
                 console.log(error.message)
             })
-    }
+    },[props]);
 
     useEffect(() => {
         if (connectionsDataRedux && userPersonalDataRedux && userPersonalDataRedux.Phone) {
-            console.log("hello", connectionsDataRedux)
+            // console.log("hello", connectionsDataRedux)
             setUserPhoneNumber(userPersonalDataRedux.Phone);
             setUserDetails((prevState) => ({ ...prevState, "Mobile": userPersonalDataRedux.Phone, "Name": userPersonalDataRedux.FirstName + " " + userPersonalDataRedux.LastName }))
             setUserConnectionList(connectionsDataRedux["6379185147"]);
@@ -72,11 +90,12 @@ const Network = () => {
                                 setReferalParentMobile(response.data().parent);
                                 setReferalGrandParent(response.data().grandParent);
                                 setUserConnectionList(connectionsDataRedux[response.data().grandParent]);
+                                setVisibleMainComponent(true);
                             }).catch((error) => {
                                 console.log("error please", error.message)
                             })
                     } else {
-                        console.log("logged", connectionsDataRedux[userPersonalDataRedux.Phone])
+                        setVisibleMainComponent(true);
                         setReferalParentMobile("NA")
                         setReferalGrandParent("NA");
                         setUserConnectionList(connectionsDataRedux[userPersonalDataRedux.Phone]);
@@ -100,9 +119,9 @@ const Network = () => {
             setUserDetails((prevState) => ({ ...prevState, "Tree Level": level }));
             if (typeof connection === 'object') {
                 const length = Object.keys(connection).length;
-                let connectionObject={};
-                for(let item in connection){
-                    connectionObject={...connectionObject,[item]:item}
+                let connectionObject = {};
+                for (let item in connection) {
+                    connectionObject = { ...connectionObject, [item]: item }
                 }
                 setAllDirectReferals(connectionObject);
                 // console.log(connectionObject);
@@ -116,51 +135,51 @@ const Network = () => {
         }
     }, [userConnectionList])
 
-    useEffect(()=>{
-        if(allDirectReferals){
+    useEffect(() => {
+        if (allDirectReferals) {
             getAllDirectreferalDetails();
         }
-    },[allDirectReferals]);
+    }, [allDirectReferals]);
 
-    const getAllDirectreferalDetails=async()=>{
-        let array=[];
-            for(let phone in allDirectReferals){
-                console.log(phone);
-                let connection=getChildrensObject(connectionsDataRedux,phone);
-                let directReferals=0;
-                let totalMembers=0;
-                let FirstName='N';
-                let LastName='N';
-                getDoc(doc(firestore, "Users",phone , "Personal Details", "Data"))
-                    .then((result) => {
-                        if(result.data()){
-                            if(typeof connection==='object'){
-                                directReferals=Object.keys(connection).length;
-                                totalMembers = countAllChildrens(connection);
-                            }
-                            const FirstName=result.data().FirstName;
-                            const LastName=result.data().LastName;
-                            let finalObj={
-                                "Mobile":phone,
-                                "Name":FirstName+" "+LastName,
-                                "DirectReferals":directReferals,
-                                "MembersUnder":totalMembers,
-                                "TreeLevel": userTreeLevel+1,
-                                "Icon":FirstName.charAt(0)+LastName.charAt(0)
-                            }
-                            array.push(finalObj);  
-                            console.log(array.length);
-                            if(array.length===Object.keys(allDirectReferals).length){
-                                setReferalsFinalArray(array);
-                            }
-                            console.log("array",array);
-                        }else{
-                            return null;
-                        }  
-                    }).catch((error) => {
-                        console.log("error please", error.message)
+    const getAllDirectreferalDetails = async () => {
+        let array = [];
+        for (let phone in allDirectReferals) {
+            // console.log(phone);
+            let connection = getChildrensObject(connectionsDataRedux, phone);
+            let directReferals = 0;
+            let totalMembers = 0;
+            let FirstName = 'N';
+            let LastName = 'N';
+            getDoc(doc(firestore, "Users", phone, "Personal Details", "Data"))
+                .then((result) => {
+                    if (result.data()) {
+                        if (typeof connection === 'object') {
+                            directReferals = Object.keys(connection).length;
+                            totalMembers = countAllChildrens(connection);
+                        }
+                        const FirstName = result.data().FirstName;
+                        const LastName = result.data().LastName;
+                        let finalObj = {
+                            "Mobile": phone,
+                            "Name": FirstName + " " + LastName,
+                            "DirectReferals": directReferals,
+                            "MembersUnder": totalMembers,
+                            "TreeLevel": userTreeLevel + 1,
+                            "Icon": FirstName.charAt(0) + LastName.charAt(0)
+                        }
+                        array.push(finalObj);
+                        // console.log(array.length);
+                        if (array.length === Object.keys(allDirectReferals).length) {
+                            setReferalsFinalArray(array);
+                        }
+                        // console.log("array", array);
+                    } else {
+                        return null;
+                    }
+                }).catch((error) => {
+                    console.log("error please", error.message)
                 })
-            }
+        }
     }
 
     function findKeyLevel(obj, targetKey, currentLevel = 1) {
@@ -206,9 +225,23 @@ const Network = () => {
     const openAddConnectionPage = () => {
         navigation.navigate('Invite Add Connection');
     }
-    const openConnectionTreePage=()=>{
-        const data={[userPersonalDataRedux.Phone]: userConnectionList };
-        navigation.navigate('Network Connection Tree', {data, userPhoneNumber});
+    const openConnectionTreePage = (phone) => {
+        const userMainPhoneNumber=userPhoneNumber;
+        let phoneNumber=userMainPhoneNumber;
+        if(phone){
+            phoneNumber=phone;
+        }
+        // console.log(phoneNumber);
+        let parentMobile = null;
+        if (referalGrandParent !== 'NA') {
+            parentMobile = referalGrandParent;
+        } else  if(referalParentMobile !=='NA'){
+            parentMobile = referalParentMobile;
+        } else{
+            parentMobile = userPersonalDataRedux.Phone;
+        }
+        const data = { [parentMobile]: userConnectionList };
+        navigation.navigate('Network Network Tree', { data, userPhoneNumber:phoneNumber });
     }
 
 
@@ -216,87 +249,99 @@ const Network = () => {
         <Provider>
             <Appbar.Header style={{ backgroundColor: appColors.basicRed }}>
                 <Appbar.Content title="Connections" color='white' />
-                <View style={{flexDirection:'row', alignItems:'center', marginLeft:5, marginRight:7}}>
-                    <VectorIcon name="network-wired" color='white' size={21} style={{marginRight:17}} onPress={()=>openConnectionTreePage()}/>
-                    <VectorIcon name='user-plus' size={21} color='white' onPress={() => openAddConnectionPage()} 
-                    style={{marginRight:17}}/>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 5, marginRight: 7 }}>
+                    <VectorIcon name="network-wired" color='white' size={21} style={{ marginRight: 17 }} onPress={() => openConnectionTreePage()} />
+                    <VectorIcon name='user-plus' size={21} color='white' onPress={() => openAddConnectionPage()}
+                        style={{ marginRight: 17 }} />
                     <Icon name='help-circle' type='feather' color='white' />
                 </View>
             </Appbar.Header>
-            <SafeAreaView style={Styles.container}>
-            <ScrollView >
-                <View style={Styles.userDetailsTopContainer}>
-                    <Text style={Styles.userDetailsTitle}>Your Connection Details</Text>
-                    {
-                        Object.entries(userDetails).map(([keys, values], index) => {
-                            return (
-                                <View style={Styles.everyUserDetailContainer} key={index}>
-                                    <View style={Styles.userDetailsInnerContainer}>
-                                        <Text style={Styles.userDetailsText}>{keys}</Text>
-                                    </View>
-                                    <View style={Styles.userDetailsInnerContainer}>
-                                        <View style={Styles.userDetailsRightContainer}>
-                                            <Text style={Styles.userDetailsText}>:</Text>
-                                            <Text style={{ ...Styles.userDetailsText, ...Styles.userRightDetailText }}>{values}</Text>
+            {!visibleMainComponent &&
+                <CustomProgressBar/>
+            }
+            {visibleMainComponent &&
+                <SafeAreaView style={Styles.container}>
+                    {showOvelayLoader && <OverlayLoader content={ovelayLoaderContent} />}
+                    {isToastVisible && <CustomToast content={toastContent} handleToastVisible={() => setIsToastVisible(false)} />}
+                    <ScrollView showsVerticalScrollIndicator={false}>
+                        <View style={Styles.userDetailsTopContainer}>
+                            <Text style={Styles.userDetailsTitle}>Your Connection Details</Text>
+                            {
+                                Object.entries(userDetails).map(([keys, values], index) => {
+                                    return (
+                                        <View style={Styles.everyUserDetailContainer} key={index}>
+                                            <View style={Styles.userDetailsInnerContainer}>
+                                                <Text style={Styles.userDetailsText}>{keys}</Text>
+                                            </View>
+                                            <View style={Styles.userDetailsInnerContainer}>
+                                                <View style={Styles.userDetailsRightContainer}>
+                                                    <Text style={Styles.userDetailsText}>:</Text>
+                                                    <Text style={{ ...Styles.userDetailsText, ...Styles.userRightDetailText }}>{values}</Text>
+                                                </View>
+                                            </View>
+                                        </View>
+                                    )
+                                })
+                            }
+                        </View>
+                        <View>
+
+                            {referalsFinalArray &&
+                                referalsFinalArray.map((item) => (
+                                    <View key={item.Mobile} >
+                                        <View style={Styles.referalsContainer}>
+                                            <View style={Styles.referalsEveryTopLeftLine}>
+                                            </View>
+                                            <View style={Styles.referalsInnerContainer}>
+                                                <View style={Styles.referalsIconContainer}>
+                                                    <Text style={Styles.referalsIconText}>
+                                                        {item.Icon}
+                                                    </Text>
+                                                </View>
+                                                <View style={Styles.referalsInnerLeftLine}>
+                                                </View>
+                                                <View style={Styles.referalsMainOuterContainer}>
+                                                    <View style={Styles.referalsMainContainer}>
+                                                        <View style={Styles.referalsMainLeftContainer}>
+                                                            <Text style={Styles.referalContentTitleText}>Mobile : </Text>
+                                                            <Text style={Styles.referalContentValueText}>{item.Mobile}</Text>
+                                                        </View>
+                                                        <View style={Styles.referalsMainRightContainer}>
+                                                            <Text style={Styles.referalContentTitleText}>Name : </Text>
+                                                            <Text style={Styles.referalContentValueText} numberOfLines={1} ellipsizeMode='tail'>
+                                                                {item.Name}
+                                                            </Text>
+                                                        </View>
+                                                        <View style={Styles.referalsMainLeftContainer}>
+                                                            <Text style={Styles.referalContentTitleText}>Direct Referals : </Text>
+                                                            <Text style={Styles.referalContentValueText}>{item.DirectReferals}</Text>
+                                                        </View>
+                                                        <View style={Styles.referalsMainLeftContainer}>
+                                                            <Text style={Styles.referalContentValueText}>Members Under : {item.MembersUnder}</Text>
+                                                            <Text style={Styles.referalContentValueText}></Text>
+                                                        </View>
+                                                        <View style={{ flexDirection: 'row' }}>
+                                                            <Text style={Styles.referalContentTitleText}>Tree Level : </Text>
+                                                            <Text style={Styles.referalContentValueText}>{userTreeLevel + 1}</Text>
+                                                        </View>
+                                                    </View>
+                                                    <View style={Styles.referalsArrowIconContainer}>
+                                                        <Icon name='arrow-right' type='feather' 
+                                                        color={appColors.basicRed}
+                                                        iconStyle={Styles.referalsArrowIcon}
+                                                        onPress={()=>openConnectionTreePage(item.Mobile)}/>
+                                                    </View>
+                                                </View>
+
+                                            </View>
                                         </View>
                                     </View>
-                                </View>
-                            )
-                        })
-                    }
-                </View>
-                <View>
-
-                    {referalsFinalArray &&
-                        referalsFinalArray.map((item)=>(
-                            <View key={item.Mobile}>
-                                <View style={{ marginRight: 30, marginLeft:15 }}>
-                            <View style={{ borderLeftWidth: 2, height: 30, marginLeft: 15, borderLeftColor: '#bf0f53' }}>
-                            </View>
-                            <View style={{
-                                flexDirection: 'row', width: '100%', alignItems: 'center',
-                                borderLeftWidth: 2, marginLeft: 15, borderLeftColor: '#bf0f53', marginTop: -1}}>
-                                <View style={{ position: 'absolute', left: -20, zIndex: 1 }}>
-                                    <Text style={{
-                                        backgroundColor: '#bf0f53', color: 'white', textAlign: 'center',
-                                        textAlignVertical: 'center', fontSize: 17, borderRadius: 20, padding: 7}}>
-                                        {item.Icon}
-                                    </Text>
-                                </View>
-                                <View style={{ borderBottomWidth: 2, flex: 0.13, borderBottomColor:'#bf0f53' }}></View>
-                                <View style={{
-                                    flex: 0.87, backgroundColor: '#800440', padding: 12,
-                                    borderRadius: 25, borderBottomLeftRadius: 0, borderTopRightRadius: 3,
-                                    borderColor:'white', borderWidth:5,}}>
-                                    <View style={{ flexDirection: 'row', marginBottom:5, }}>
-                                        <Text style={{ color: 'white', fontSize: 18, fontFamily:'serif' }}>Mobile : </Text>
-                                        <Text style={{ color: 'white', fontSize: 19, fontWeight:'bold', fontFamily:'serif' }}>{item.Mobile}</Text>
-                                    </View>
-                                    <View style={{ flexDirection: 'row', marginBottom:5, }}>
-                                        <Text style={{ color: 'white', fontSize: 18, fontFamily:'serif' }}>Name : </Text>
-                                        <Text style={{ color: 'white', fontSize: 19, fontWeight:'bold', fontFamily:'serif' }}>{item.Name}</Text>
-                                    </View>
-                                    <View style={{ flexDirection: 'row', marginBottom:5, }}>
-                                        <Text style={{ color: 'white', fontSize: 18, fontFamily:'serif' }}>Direct Referals : </Text>
-                                        <Text style={{ color: 'white', fontSize: 19, fontWeight:'bold', fontFamily:'serif' }}>{item.DirectReferals}</Text>
-                                    </View>
-                                    <View style={{ flexDirection: 'row', marginBottom:5, }}>
-                                        <Text style={{ color: 'white', fontSize: 18, fontFamily:'serif' }}>Members Under : {item.MembersUnder}</Text>
-                                        <Text style={{ color: 'white', fontSize: 19, fontWeight:'bold', fontFamily:'serif' }}></Text>
-                                    </View>
-                                    <View style={{ flexDirection: 'row' }}>
-                                        <Text style={{ color: 'white', fontSize: 18, fontFamily:'serif' }}>Tree Level : </Text>
-                                        <Text style={{ color: 'white', fontSize: 19, fontWeight:'bold', fontFamily:'serif' }}>{userTreeLevel+1}</Text>
-                                    </View>
-                                </View>
-                            </View>
+                                ))
+                            }
                         </View>
-                            </View>
-                        ))
-                    }
-                </View>
-            </ScrollView>
-            </SafeAreaView>
+                    </ScrollView>
+                </SafeAreaView>
+            }
         </Provider>
     )
 }
