@@ -29,6 +29,7 @@ import NoInternetOverlay from "./src/Components/Features/NoInternetOverlay";
 import NetworkTree from "./src/Components/IndexScreens/Network/NetworkTree";
 
 import { checkInternetConnection } from "./src/Others/InternetConnectionStatus";
+import LogInAdmin from "./src/Admin/Components/LogInAdmin";
 
 const Stack = createStackNavigator();
 
@@ -36,22 +37,22 @@ const App=()=> {
 
   const [isInternetAvailable, setIsInternetAvailable]=useState(false);
 
-  // useEffect(()=>{
+  useEffect(()=>{
 
-  //   const interval= setInterval( async()=>{
-  //     let networkStatus = await checkInternetConnection();
-  //     if (!networkStatus) {
-  //       setIsInternetAvailable(true); 
-  //     }else{
-  //       setIsInternetAvailable(false); 
-  //     }
-  //   },3000);
+    const interval= setInterval( async()=>{
+      let networkStatus = await checkInternetConnection();
+      if (!networkStatus) {
+        setIsInternetAvailable(true); 
+      }else{
+        setIsInternetAvailable(false); 
+      }
+    },3000);
 
-  //   return ()=>{
-  //     clearInterval(interval);
-  //   }
+    return ()=>{
+      clearInterval(interval);
+    }
 
-  // },[]);
+  },[]);
 
 
   return (
@@ -59,13 +60,15 @@ const App=()=> {
       <Provider store={Store}>
       <NavigationContainer>
       { isInternetAvailable && <NoInternetOverlay closeInternetOverlay={()=>setIsInternetAvailable(false)}/> }
-        <Stack.Navigator initialRouteName="LogIn">
+        <Stack.Navigator initialRouteName="LogIn Admin">
           <Stack.Screen name="Index" component={Index} options={({ navigation})=>({ title:"Arun", headerShown:false, Toast:()=>Toast()})}/>
           <Stack.Screen name="LogIn" component={LogIn} options={{ headerTitle: basicStrings.appName, headerStyle: { backgroundColor: appColors.basicRed}, headerTintColor:'white' }}  />
           <Stack.Screen name="SignUp" component={SignUp} options={{ headerTitle: 'Create New Account', headerStyle: { backgroundColor: appColors.basicRed } , headerTintColor:'white'}} />
           <Stack.Screen name="Forgot Password" component={ForgotPassword} options={{ headerTitle: 'Reset Password', headerStyle: { backgroundColor: appColors.basicRed }, headerTintColor:'white' }} />
           <Stack.Screen name="Invite Add Connection" component={AddConnection} options={{ headerTitle: 'Add Connection', headerStyle: { backgroundColor: appColors.basicRed }, headerTintColor:'white' }}/>
           <Stack.Screen name="Network Network Tree" component={NetworkTree} options={{ headerTitle: 'Connection Tree', headerStyle: { backgroundColor: appColors.basicRed }, headerTintColor:'white' }}/>
+
+          <Stack.Screen name="LogIn Admin" component={LogInAdmin} options={{ headerTitle: 'Admin', headerStyle: { backgroundColor: appColors.basicRed }, headerTintColor:'white' }}/>
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>
