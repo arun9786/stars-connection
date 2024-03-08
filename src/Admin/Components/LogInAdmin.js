@@ -8,7 +8,7 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { firestore } from "../../config/firebase";
 import { doc, getDoc, } from 'firebase/firestore'
 
-import { Styles } from "../../Styles/Registration/LogInCss";
+import { Styles } from "../Styles/LogInAdminCss";
 import { mobileRegex, passwordRegex } from '../../Others/Regex'
 import basicsStrings from '../../Strings/basics.json'
 import appColors from '../../Others/appColors.json'
@@ -18,13 +18,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { PersonalDetailsFun } from "../../Redux/Slice/UserProfileSlice";
 import { Provider } from "react-native-paper";
 
-import CustomToast from "../Features/CustomToast";
-import OverlayLoader from "../Features/OverlayLoader";
-import { getSizeForScreen } from "../Features/responsiveSizeMaker";
-import OverlayMainLoader from "../Features/Overlay/OverlayMainLoader";
+import CustomToast from "../../Components/Features/CustomToast";
+import OverlayLoader from "../../Components/Features/OverlayLoader";
+import { getSizeForScreen } from "../../Components/Features/responsiveSizeMaker";
+import OverlayMainLoader from "../../Components/Features/Overlay/OverlayMainLoader";
 
 
-const LogIn = () => {
+const LogInAdmin = () => {
     const auth = getAuth();
     const navigation = useNavigation();
     const dispatch = useDispatch();
@@ -32,11 +32,14 @@ const LogIn = () => {
     console.log("login redux", userPersonalDataRedux);
 
 
-    const [userPhone, setUserPhone] = useState('6379185147');
-    const [userPassword, setUserPassword] = useState('9786@RArun');
+    const [userID, setUserID] = useState('123456');
+    const [userPassword, setUserPassword] = useState('123456');
+    const [userKey, setUserKey] = useState('123456');
 
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [passwordEyeIcon, setPasswordEyeIcon] = useState('eye-off');
+    const [keyVisible, setKeyVisible] = useState(false);
+    const [keyEyeIcon, setKeyEyeIcon] = useState('eye-off');
 
     const [isToastVisible, setIsToastVisible] = useState(false);
     const [toastContent, setToastContent] = useState(false);
@@ -85,6 +88,14 @@ const LogIn = () => {
         }
     }, [passwordVisible]);
 
+    useEffect(() => {
+        if (keyVisible) {
+            setKeyEyeIcon('eye');
+        } else {
+            setKeyEyeIcon('eye-off');
+        }
+    }, [keyVisible]);
+
     const Toast = (message, errorStatus = true, timeout = 2500, position = 'top') => {
         let content = { "message": message, "errorStatus": errorStatus, "timeout": timeout, "position": position };
         setToastContent(content);
@@ -96,30 +107,26 @@ const LogIn = () => {
 
 
     const LogInWithPhonePasswordFun = async () => {
-        if (!mobileRegex.test(userPhone)) {
-            Toast('Please enter a valid phone number.');
-        } else if (!passwordRegex.test(userPassword)) {
-            if (userPassword.length > 0) {
+        if (userID.length < 6) {
+            Toast('UserID is Wrong.');
+        } else if(userPassword.length < 6) {
                 Toast('The password you entered is incorrect.')
-            } else {
-                Toast('Please enter your password.');
-            }
+        } else if(userKey.length <6){
+            Toast('Key is Wrong.');
         } else {
             setShowOvelayMainLoader(true);
-            getDoc(doc(firestore, "Users", userPhone, "Personal Details", "Data"))
+            getDoc(doc(firestore, "Admin", "Personal"))
                 .then((result) => {
                     console.log(result.data());
-                    setShowOvelayMainLoader(false);
                     if (result.data()) {
                         setShowOvelayMainLoader(false);
-                        let encodedPassword = passwordEncoder(userPassword);
-                        if (result.data().Password === encodedPassword) {
-                            dispatch(PersonalDetailsFun(result.data()));
+                        if (result.data().ID === userID && result.data().Password === userPassword && result.data().Key === userKey) {
+                            // dispatch(PersonalDetailsFun(result.data()));
                             Toast('Sign-in successful...', false, undefined, 'top')
-                            const timer = setTimeout(() => {
-                                openIndexPage()
-                            }, 1000);
-                            return () => clearTimeout(timer);
+                            // const timer = setTimeout(() => {
+                            //     openIndexPage()
+                            // }, 1000);
+                            // return () => clearTimeout(timer);
                         } else {
                             Toast("Invalid credentials provided. Please check your information and try again.", undefined, 5000);
                         }
@@ -154,39 +161,24 @@ const LogIn = () => {
 
     return (
         <Provider>
-            <View>
+            <View style={Styles.contaier}>
                 {isToastVisible && <CustomToast content={toastContent} handleToastVisible={() => setIsToastVisible(false)} />}
                 {showOvelayMainLoader &&  <OverlayMainLoader/>}
-                <ScrollView>
+                {/* <ScrollView> */}
                     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-                        <View style={Styles.contaier}>
-                            <Text style={Styles.pageWelcome}>
-                                Welcome
-                            </Text>
-                            <View style={Styles.signupContainer}>
-                                <RadioGroup
-                                    radioButtons={radioButtonsSignUp}
-                                    selectedId="2"
-                                    onPress={() => openSignupPage()}
-                                    containerStyle={{ alignItems: 'flex-start' }}
-                                />
-                            </View>
+                        <View>
+                            <View style={Styles.signinTopView}></View>
                             <View style={Styles.signinContainer}>
-                                <RadioGroup
-                                    radioButtons={radioButtonsSignIn}
-                                    selectedId="1"
-                                    containerStyle={{ alignItems: 'flex-start' }}
-                                />
                                 <Input
-                                    placeholder="Phone..."
+                                    placeholder="ID..."
                                     style={Styles.input}
                                     inputContainerStyle={Styles.inputContainer}
                                     labelStyle={Styles.lableStyle}
-                                    keyboardType='phone-pad'
-                                    onChangeText={(text) => setUserPhone(text)}
-                                    value={userPhone}
+                                    label='ID'
+                                    onChangeText={(text) => setUserID(text)}
+                                    value={userID}
                                     containerStyle={{ margin: 0, padding: 0 }}
-                                    leftIcon={<Icon name='phone' color={appColors.basicRed} style={Styles.inputIcons} />}
+                                    leftIcon={<Icon name='user' type='feather' color={appColors.basicRed} style={Styles.inputIcons} />}
                                 />
                                 <Input placeholder="Password..."
                                     style={Styles.input}
@@ -195,9 +187,23 @@ const LogIn = () => {
                                     labelStyle={Styles.lableStyle}
                                     rightIcon={<Icon name={passwordEyeIcon} type="feather" color={appColors.basicRed}
                                         onPress={() => setPasswordVisible(!passwordVisible)} />}
-                                    leftIcon={<Icon name='lock' color={appColors.basicRed} />}
+                                    leftIcon={<Icon name='lock' type='feather' color={appColors.basicRed} />}
                                     onChangeText={(text) => setUserPassword(text)}
                                     value={userPassword}
+                                    label='Password'
+                                />
+
+                                <Input placeholder="Secret Key..."
+                                    style={Styles.input}
+                                    secureTextEntry={!keyVisible}
+                                    inputContainerStyle={Styles.inputContainer}
+                                    labelStyle={Styles.lableStyle}
+                                    rightIcon={<Icon name={keyEyeIcon} type="feather" color={appColors.basicRed}
+                                        onPress={() => setKeyVisible(!keyVisible)} />}
+                                    leftIcon={<Icon name='key' type='feather' color={appColors.basicRed} />}
+                                    onChangeText={(text) => setUserKey(text)}
+                                    value={userKey}
+                                    label='Secret Key'
                                 />
 
                                 <Button title='Sign-In'
@@ -208,23 +214,12 @@ const LogIn = () => {
                                     titleStyle={Styles.buttonTitleStyle}
                                     onPress={LogInWithPhonePasswordFun}
                                 />
-
-                                <Text style={Styles.privacyPolicy}>
-                                    By continuing, you agree to {basicsStrings.appName}'s conditions of Use and Privacy notice.
-                                </Text>
                             </View>
-                            <View style={Styles.forgotPasswordContainer}>
-                                <RadioGroup
-                                    radioButtons={radioButtonsForgotPassword}
-                                    selectedId="2"
-                                    onPress={() => openForgotPasswordPage()}
-                                    containerStyle={{ alignItems: 'flex-start' }}
-                                />
-                            </View>
+                            <View style={Styles.signinBottomView}></View>
 
                         </View>
                     </TouchableWithoutFeedback>
-                </ScrollView>
+                {/* </ScrollView> */}
             </View>
         </Provider>
 
@@ -232,4 +227,4 @@ const LogIn = () => {
 
 }
 
-export default LogIn;
+export default LogInAdmin;

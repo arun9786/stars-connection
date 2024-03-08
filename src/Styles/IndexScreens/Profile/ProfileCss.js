@@ -1,8 +1,9 @@
 import { StyleSheet } from "react-native";
+import appColors from '../../../Others/appColors.json'
 
 export const Styles = StyleSheet.create({
     AppbarHeader: {
-        backgroundColor: '#000000',
+        backgroundColor: appColors.basicRed,
     },
     headerNotificationContainer: {
         marginRight: 7,
@@ -12,7 +13,6 @@ export const Styles = StyleSheet.create({
         flexDirection: 'row'
     },
     mainConatainer:{
-        backgroundColor:'#000000',
         flex:1,
     }
 });

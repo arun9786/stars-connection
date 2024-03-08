@@ -718,6 +718,8 @@ export default function SignUp(props) {
                         Gender: userGender,
                         Mail: userEmail,
                         Password: encodedPassword,
+                        Joined:new Date().toLocaleDateString(),
+                        Bio:''
                     };
                     const addressData = {
                         Place: userPlace,

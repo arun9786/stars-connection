@@ -78,7 +78,7 @@ export const Styles=StyleSheet.create({
     },
     referalsIconContainer:{
         position: 'absolute', 
-        left: -17, 
+        left: -20, 
         zIndex: 1
     },
     referalsIconText:{

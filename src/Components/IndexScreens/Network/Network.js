@@ -26,8 +26,8 @@ const Network = (props) => {
     const dispatch = useDispatch();
     const { width: screenWidth } = Dimensions.get('window');
 
-    let userPersonalDataRedux = useSelector((state) => state.UserProfileReducer.personal);
-    let connectionsDataRedux = useSelector((state) => state.ConnectionsReducer.connections_array);
+    const userPersonalDataRedux = useSelector((state) => state.UserProfileReducer.personal);
+    const connectionsDataRedux = useSelector((state) => state.ConnectionsReducer.connections_array);
     let userDetailsArr = {
         "Mobile": "NA",
         "Name": "NA",
@@ -67,6 +67,7 @@ const Network = (props) => {
         setVisibleMainComponent(false);
         getDoc(doc(firestore, "Connections", "Data"))
             .then((response) => {
+                console.log("coming dai...")
                 dispatch(ConnectionsFun(response.data()))
             })
             .catch((error) => {
@@ -76,13 +77,12 @@ const Network = (props) => {
 
     useEffect(() => {
         if (connectionsDataRedux && userPersonalDataRedux && userPersonalDataRedux.Phone) {
-            // console.log("hello", connectionsDataRedux)
+            console.log("hello")
             setUserPhoneNumber(userPersonalDataRedux.Phone);
             setUserDetails((prevState) => ({ ...prevState, "Mobile": userPersonalDataRedux.Phone, "Name": userPersonalDataRedux.FirstName + " " + userPersonalDataRedux.LastName }))
-            setUserConnectionList(connectionsDataRedux["6379185147"]);
             getDoc(doc(firestore, "Users", userPersonalDataRedux.Phone, "Connections", "Data"))
                 .then((response) => {
-                    if (response.data()) {
+                    if (response.data() && response.data().parent) {
                         getDoc(doc(firestore, "Users", response.data().parent, "Personal Details", "Data"))
                             .then((result) => {
                                 setUserDetails((prevState) => ({ ...prevState, "Promoter": result.data().FirstName + " " + result.data().LastName }))
@@ -90,12 +90,10 @@ const Network = (props) => {
                                 setReferalParentMobile(response.data().parent);
                                 setReferalGrandParent(response.data().grandParent);
                                 setUserConnectionList(connectionsDataRedux[response.data().grandParent]);
-                                setVisibleMainComponent(true);
                             }).catch((error) => {
                                 console.log("error please", error.message)
                             })
                     } else {
-                        setVisibleMainComponent(true);
                         setReferalParentMobile("NA")
                         setReferalGrandParent("NA");
                         setUserConnectionList(connectionsDataRedux[userPersonalDataRedux.Phone]);
@@ -108,8 +106,9 @@ const Network = (props) => {
     }, [connectionsDataRedux, userPersonalDataRedux])
 
     useEffect(() => {
+        console.log("hey")
         if (userConnectionList && userPersonalDataRedux && connectionsDataRedux) {
-            // console.log("wel");
+            console.log("wel");
             // console.log("list", JSON.stringify(userConnectionList));
             const level = findKeyLevel(connectionsDataRedux, userPersonalDataRedux.Phone);
             const connection = getChildrensObject(connectionsDataRedux, userPersonalDataRedux.Phone);
@@ -127,16 +126,17 @@ const Network = (props) => {
                 // console.log(connectionObject);
                 setUserDetails((prevState) => ({ ...prevState, "Direct Referals": length }));
                 totalMembers = countAllChildrens(connection);
+                setVisibleMainComponent(true);
             } else {
+                setVisibleMainComponent(true);
                 setUserDetails((prevState) => ({ ...prevState, "Direct Referals": 0 }));
             }
             setUserDetails((prevState) => ({ ...prevState, "Members Under You": totalMembers }));
-
         }
     }, [userConnectionList])
 
     useEffect(() => {
-        if (allDirectReferals) {
+        if (allDirectReferals && Object.keys(allDirectReferals).length>0 ) {
             getAllDirectreferalDetails();
         }
     }, [allDirectReferals]);
@@ -168,11 +168,9 @@ const Network = (props) => {
                             "Icon": FirstName.charAt(0) + LastName.charAt(0)
                         }
                         array.push(finalObj);
-                        // console.log(array.length);
                         if (array.length === Object.keys(allDirectReferals).length) {
                             setReferalsFinalArray(array);
                         }
-                        // console.log("array", array);
                     } else {
                         return null;
                     }

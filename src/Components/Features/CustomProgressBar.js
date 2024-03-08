@@ -62,14 +62,6 @@ const CustomProgressBar = () => {
 
   return (
     <View>
-      <View style={{ ...styles.progressBarContainer, backgroundColor: progressViewBackgroundColor }}>
-        <LinearGradient
-          colors={gradientColors}
-          style={[styles.progressBar, { width: `${progressValue * 100}%` }]}
-          start={{ x: 0, y: 0.5 }}
-          end={{ x: 1, y: 0.5 }}
-        />
-      </View>
       <View>
         <View style={{ padding: 5, backgroundColor: 'white', flexDirection: 'row' }}>
           <View style={

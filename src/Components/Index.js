@@ -7,7 +7,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Home from './IndexScreens/Home';
 import Invite from './IndexScreens/Invite/Invite';
-import Profile from './Profile';
+import Profile from './IndexScreens/Profile/Profile';
 import Network from './IndexScreens/Network/Network';
 
 import appColors from '../Others/appColors.json'
@@ -29,7 +29,7 @@ export default function Index() {
     if(!connectionsDataRedux){
       getDoc(doc(firestore,"Connections","Data"))
       .then((response)=>{
-        dispatch(ConnectionsFun(response.data()[0]))
+        dispatch(ConnectionsFun(response.data()));
       })
       .catch((error)=>{
         console.log(error.message)
@@ -75,7 +75,7 @@ export default function Index() {
           "display": "flex",
           "backgroundColor": "white",
           paddingBottom: 2,
-          borderTopColor:'#d4d5d6'
+          borderTopColor:'#a6a5a4'
         },
         ],
         tabBarLabelStyle: {
@@ -84,11 +84,11 @@ export default function Index() {
         tabBarActiveBackgroundColor:'#ebedeb'
       })}
       >
+        <Tab.Screen name="Profile" component={Profile} options={{ headerShown: false }} />
         <Tab.Screen name="Network" component={Network} initialParams={{"name":"resetPage"}} options={{ headerShown: false }} />
         <Tab.Screen name="Refer & Earn" component={Invite} initialParams={{"name":"resetPage"}} options={{ headerShown: false }} />
         <Tab.Screen name="Home" component={Home} options={{ headerShown: false}} />
         <Tab.Screen name="Search" component={Home} options={{ headerShown: false }} />
-        <Tab.Screen name="Profile" component={Profile} options={{ headerShown: false }} />
       </Tab.Navigator>
     </Provider>
   )

@@ -17,5 +17,44 @@ const getColorCodeDark=()=>{
     return colors[number];
 }
 
+//used to get all keys from obejct
+const getAllKeysFromObject = (obj) => {
+    let keys = [];
+    for (const key in obj) {
+      keys.push(key);
+      if (typeof obj[key] === 'object' && obj[key] !== null) {
+        keys = keys.concat(getAllKeysFromObject(obj[key]));
+      }
+    }
+    return keys;
+};
 
-export { getColorCode, getColorCodeDark };
+//used to get the main children keys from targetted key
+function getChildrensObjectBasedOnKey(obj, targetKey) {
+  for (const key in obj) {
+      if (key === targetKey) {
+          return obj[key];
+      } else if (typeof obj[key] === 'object') {
+          const result = getChildrensObjectBasedOnKey(obj[key], targetKey);
+          if (result !== undefined) {
+              return result;
+          }
+      }
+  }
+  return undefined;
+}
+
+//used to count all childrenns count in specific object 
+function countAllChildrensInObject(obj, uniqueKeys = new Set()) {
+  for (const key in obj) {
+      uniqueKeys.add(key);
+      if (typeof obj[key] === 'object') {
+        countAllChildrensInObject(obj[key], uniqueKeys);
+      }
+  }
+
+  return uniqueKeys.size;
+}
+
+
+export { getColorCode, getColorCodeDark, getAllKeysFromObject, getChildrensObjectBasedOnKey, countAllChildrensInObject };

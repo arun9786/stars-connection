@@ -6,7 +6,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { Appbar, Menu, Divider, Provider } from 'react-native-paper';
 import { Badge, Button, Icon, LinearProgress } from 'react-native-elements';
 import { getAuth, signOut, onAuthStateChanged } from 'firebase/auth'
-import { collection, addDoc, setDoc, doc, getDoc } from 'firebase/firestore'
+import { collection, addDoc, setDoc, doc, getDoc, query, getDocs, CollectionReference, writeBatch } from 'firebase/firestore'
 import { firestore } from "../../config/firebase";
 import { useNavigation } from '@react-navigation/native';
 
@@ -15,6 +15,7 @@ import { Styles } from '../../Styles/IndexScreens/HomeCss';
 import basicStrings from '../../Strings/basics.json'
 import appColors from '../../Others/appColors.json'
 import { ConnectionsFun } from '../../Redux/Slice/ConnectionsSlice';
+import { getAllKeysFromObject } from '../../Others/Basics';
 
 export default function Home() {
 
@@ -84,6 +85,31 @@ export default function Home() {
         navigation.navigate("Invite");
     }
 
+    const doWorkFireBaseFun=async()=>{
+        const querySnapshot = await getDoc(doc(firestore, "Connections", "Data"));
+        const keys= getAllKeysFromObject(querySnapshot.data());
+        const batch = writeBatch(firestore);
+        for( let phone of keys){
+            console.log(phone);
+            const userDocRef = doc(firestore, "Users", phone, "Personal Details", "Data");
+            const obj={
+                "DOB": "2/2/2000",
+                "Joined": new Date().toLocaleDateString(),
+                "Bio":""
+            }
+            batch.update(userDocRef, obj);
+        }
+        batch.commit()
+        .then(()=>{
+            console.log("success")
+        })
+        .catch((error)=>{
+            console.error(error.message)
+        })
+    }
+
+    
+
 
     return (
         <Provider>
@@ -105,6 +131,11 @@ export default function Home() {
                         value='9+'
                         containerStyle={Styles.badgeForHeader}
                         textStyle={Styles.badgeTextStyle} />
+                </View>
+                <View style={{padding:5}}>
+                    <Icon name='save' color='white' 
+                    // onPress={doWorkFireBaseFun}
+                    />
                 </View>
                 <View style={Styles.headerNotificationContainer}>
                     <Icon name='log-out' type='feather' color='white' onPress={logOutFun} />
