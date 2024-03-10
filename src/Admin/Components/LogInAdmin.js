@@ -123,10 +123,10 @@ const LogInAdmin = () => {
                         if (result.data().ID === userID && result.data().Password === userPassword && result.data().Key === userKey) {
                             // dispatch(PersonalDetailsFun(result.data()));
                             Toast('Sign-in successful...', false, undefined, 'top')
-                            // const timer = setTimeout(() => {
-                            //     openIndexPage()
-                            // }, 1000);
-                            // return () => clearTimeout(timer);
+                            const timer = setTimeout(() => {
+                                openIndexPage()
+                            }, 1000);
+                            return () => clearTimeout(timer);
                         } else {
                             Toast("Invalid credentials provided. Please check your information and try again.", undefined, 5000);
                         }
@@ -147,7 +147,7 @@ const LogInAdmin = () => {
     const openIndexPage = () => {
         navigation.reset({
             index: 0,
-            routes: [{ name: 'Index' }],
+            routes: [{ name: 'Index Admin' }],
         });
     }
 

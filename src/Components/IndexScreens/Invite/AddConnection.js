@@ -793,7 +793,7 @@ export default function AddConnection(props) {
                                             {userDOB.toLocaleDateString()}
                                         </Text>
                                     </View>
-                                    <Icon name={userDOBSuccessIcon} type="feather" color={userDOBSuccessIconColor} />
+                                    {/* <Icon name={userDOBSuccessIcon} type="feather" color={userDOBSuccessIconColor} /> */}
 
                                 </TouchableOpacity>
 
